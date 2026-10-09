@@ -87,6 +87,27 @@ const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
   maximumFractionDigits: 2,
 }
 
+const CIVIL_DATE = /^\d{4}-\d{2}-\d{2}$/
+const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+
+/**
+ * Valor de un campo `date`. Acepta tanto una fecha civil (`2026-03-01`, que se
+ * interpreta tal cual, sin corrimiento por zona horaria) como un timestamp ISO
+ * (`2026-03-01T14:30:00Z` / `2026-03-01T14:30:00+00:00`, que se formatea en la
+ * zona del runtime). Cualquier otra cosa → `null` y el detalle muestra el valor
+ * crudo, como antes.
+ */
+function parseDateValue(iso: string): Date | null {
+  if (CIVIL_DATE.test(iso)) {
+    return new Date(`${iso}T00:00:00`)
+  }
+  if (ISO_DATETIME.test(iso)) {
+    const parsed = new Date(iso)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+  return null
+}
+
 /** Construye los formateadores del detalle; compartido por el provider y el fallback. */
 function createEntityFormat(
   locale: string | undefined,
@@ -98,10 +119,8 @@ function createEntityFormat(
 
   return {
     formatDate: (iso) => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-        return iso
-      }
-      return dateTime.format(new Date(`${iso}T00:00:00`))
+      const parsed = parseDateValue(iso)
+      return parsed ? dateTime.format(parsed) : iso
     },
     formatNumber: (value) => numbers.format(value),
   }
