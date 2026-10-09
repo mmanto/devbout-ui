@@ -163,6 +163,12 @@ export type TableDTO<TData extends RowData> = {
   hiddenColumns?: readonly string[]
   /** Content rendered above the toolbar, with the live rows. */
   header?: (rows: TData[]) => ReactNode
+  /**
+   * Acciones propias en la fila del toolbar, al lado del buscador (detrás de la
+   * barra separadora). Para acciones que no son el alta de la entidad — p. ej.
+   * un alta con un formulario de la app.
+   */
+  toolbarActions?: ReactNode
   search?: { columnId: string; placeholder: string }
   pageSizeOptions?: number[]
   selectable?: boolean

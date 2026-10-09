@@ -389,7 +389,7 @@ export function DataTable<TData extends RowData>({
             </Button>
           </div>
         ) : null}
-        {search && createConfig ? (
+        {search && (createConfig || dto.toolbarActions) ? (
           <Separator
             orientation="vertical"
             className="data-vertical:h-4 data-vertical:self-auto"
@@ -406,6 +406,7 @@ export function DataTable<TData extends RowData>({
               "New"}
           </Button>
         ) : null}
+        {dto.toolbarActions}
         {bulkRows.length > 1 ? (
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>
