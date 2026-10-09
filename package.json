@@ -1,0 +1,17 @@
+{
+  "name": "devbout-ui",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @mmanto/devbout-ui",
+    "typecheck": "npm run typecheck --workspace @mmanto/devbout-ui",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.7"
+  }
+}

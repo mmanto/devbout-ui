@@ -1,0 +1,17 @@
+/*
+ * Entrada de Tailwind del paquete. El consumidor la importa desde su CSS:
+ *
+ *   @import "@mmanto/devbout-ui/tailwind.css";
+ *
+ * Esto hace que Tailwind escanee las clases que quedaron compiladas en
+ * `dist/` (Tailwind v4 ignora `node_modules` salvo que se lo pida con `@source`).
+ *
+ * Las primitivas base-mira además esperan, en el CSS del consumidor:
+ *
+ *   @import "tw-animate-css";        → animate-in / animate-out
+ *   @import "shadcn/tailwind.css";   → @custom-variant data-open/data-closed/
+ *                                      data-ending-style/… + keyframes
+ *
+ * y los tokens semánticos en `:root` / `.dark` (ver README).
+ */
+@source "./dist";
