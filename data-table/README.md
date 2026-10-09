@@ -183,7 +183,14 @@ tipada; `TableLabels` concentra los textos para que la app los traduzca a su idi
   ```
 
 - El workflow `.github/workflows/release.yml` publica al mergear el PR de versiones
-  (necesita el secret `NPM_TOKEN` con permiso de publish sobre el scope `@mmanto`).
+  usando **trusted publishing (OIDC)**: no hay `NPM_TOKEN`. Requiere, una sola vez,
+  configurar el paquete en npmjs.com → Packages → `devbout-ui` → Settings →
+  **Trusted publishing** → GitHub Actions con `Organization or user: mmanto`,
+  `Repository: devbout-ui`, `Workflow filename: release.yml` y **tildar
+  `npm publish`** entre las *allowed actions* (las configuraciones creadas desde
+  set-2026 sólo permiten `npm stage publish` por defecto, y sin ese tilde el
+  workflow queda en staging esperando aprobación manual con 2FA).
+  El workflow corre en Node 24 porque trusted publishing exige npm ≥ 11.5.1.
 - Para iterar sin publicar: `npm pack` + `npm i ./mmanto-devbout-ui-x.y.z.tgz` en la app.
 
 ## Desarrollo
