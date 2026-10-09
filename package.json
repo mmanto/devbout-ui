@@ -2,7 +2,7 @@
   "name": "devbout-ui",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "data-table"
   ],
   "scripts": {
     "build": "npm run build --workspace @mmanto/devbout-ui",
