@@ -4,7 +4,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar"
+} from "@mmanto/devbout-ui"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +13,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mmanto/devbout-ui"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@mmanto/devbout-ui"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { UnfoldMoreIcon, Settings05Icon, LogoutIcon } from "@hugeicons/core-free-icons"
 

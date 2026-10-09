@@ -1,7 +1,7 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { Badge } from "@mmanto/devbout-ui"
+import { Progress } from "@mmanto/devbout-ui"
 
 import {
   PRIORITY_LABELS,

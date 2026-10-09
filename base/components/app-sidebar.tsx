@@ -11,7 +11,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@mmanto/devbout-ui"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { LayoutBottomIcon, AudioWave01Icon, CommandIcon, ComputerTerminalIcon, Folder01Icon, PaletteIcon, Rocket01Icon } from "@hugeicons/core-free-icons"
 

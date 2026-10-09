@@ -1,6 +1,6 @@
 "use client"
 
-import { DataTable } from "@/components/data-table/data-table"
+import { DataTable } from "@mmanto/devbout-ui"
 
 import { deployDTO, type Deployment } from "./deploy-dto"
 

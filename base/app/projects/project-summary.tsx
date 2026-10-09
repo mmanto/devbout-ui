@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Calendar01Icon, UserGroupIcon } from "@hugeicons/core-free-icons"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@mmanto/devbout-ui"
 
 import { PriorityBadge, ProjectStatusBadge } from "./project-badges"
 import {

@@ -5,18 +5,18 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Copy01Icon } from "@hugeicons/core-free-icons"
 import { cn } from "cn"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
+import { Badge } from "@mmanto/devbout-ui"
+import { Button } from "@mmanto/devbout-ui"
+import { Input } from "@mmanto/devbout-ui"
+import { Progress } from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mmanto/devbout-ui"
 import { useThemePreset } from "@/components/theme-preset-provider"
 import { BLOCKS, BLOCK_TONE_LABELS } from "@/lib/theme-presets/blocks"
 import { PRESET_CATALOG } from "@/lib/theme-presets/catalog"

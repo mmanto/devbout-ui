@@ -1,18 +1,18 @@
 "use client"
 
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper } from "@mmanto/devbout-ui"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpDownIcon } from "@hugeicons/core-free-icons"
 
-import { type DataTableFeatures } from "@/components/data-table/features"
+import { type DataTableFeatures } from "@mmanto/devbout-ui"
 import {
   defineTableDTO,
   type CreateDTO,
   type DetailDTO,
   type EditDTO,
   type FieldDTO,
-} from "@/components/data-table/types"
-import { Button } from "@/components/ui/button"
+} from "@mmanto/devbout-ui"
+import { Button } from "@mmanto/devbout-ui"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.

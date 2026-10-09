@@ -10,11 +10,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { EditEntity } from "@/components/data-table/entity-form"
-import { buttonVariants } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+} from "@mmanto/devbout-ui"
+import { EditEntity } from "@mmanto/devbout-ui"
+import { buttonVariants } from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
+import { SidebarTrigger } from "@mmanto/devbout-ui"
 
 import { taskEdit } from "../../../../task-dto"
 import { useProjects } from "../../../../projects-store"

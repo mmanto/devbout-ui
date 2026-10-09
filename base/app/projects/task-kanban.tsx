@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
+} from "@mmanto/devbout-ui"
+import { Button } from "@mmanto/devbout-ui"
 
 import { PriorityBadge } from "./project-badges"
 import {

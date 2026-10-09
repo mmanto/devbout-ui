@@ -15,5 +15,6 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7"
-  }
+  },
+  "license": "Apache-2.0"
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { DataTable } from "@/components/data-table/data-table"
+import { DataTable } from "@mmanto/devbout-ui"
 
 import { projectDTO } from "./project-dto"
 import { useProjects } from "./projects-store"

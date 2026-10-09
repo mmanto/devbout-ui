@@ -9,14 +9,14 @@ import {
 } from "@hugeicons/core-free-icons"
 import { cn } from "cn"
 
-import { CreateEntity, EditEntity } from "@/components/data-table/entity-form"
-import { DetailEntity } from "@/components/data-table/entity-detail"
+import { CreateEntity, EditEntity } from "@mmanto/devbout-ui"
+import { DetailEntity } from "@mmanto/devbout-ui"
 import {
   useEntityViewMode,
   type EntityViewMode,
-} from "@/components/entity-view"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+} from "@mmanto/devbout-ui"
+import { Button } from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
 
 import {
   deployCreate,

@@ -17,11 +17,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { EntityView } from "@/components/entity-view"
-import { buttonVariants } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+} from "@mmanto/devbout-ui"
+import { EntityView } from "@mmanto/devbout-ui"
+import { buttonVariants } from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
+import { SidebarTrigger } from "@mmanto/devbout-ui"
 
 import { PriorityBadge, TaskStatusBadge } from "../../../project-badges"
 import { taskDetail } from "../../../task-dto"

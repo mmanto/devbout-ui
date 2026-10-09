@@ -3,9 +3,9 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+} from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
+import { SidebarTrigger } from "@mmanto/devbout-ui"
 
 import { ProjectsTable } from "./projects-table"
 

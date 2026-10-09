@@ -13,12 +13,12 @@ import {
 } from "@hugeicons/core-free-icons"
 import { cn } from "cn"
 
-import { ConfirmDialog } from "@/components/data-table/confirm-dialog"
-import { DataTable } from "@/components/data-table/data-table"
-import { CreateEntity } from "@/components/data-table/entity-form"
-import { EntityView } from "@/components/entity-view"
-import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { ConfirmDialog } from "@mmanto/devbout-ui"
+import { DataTable } from "@mmanto/devbout-ui"
+import { CreateEntity } from "@mmanto/devbout-ui"
+import { EntityView } from "@mmanto/devbout-ui"
+import { Badge } from "@mmanto/devbout-ui"
+import { Button, buttonVariants } from "@mmanto/devbout-ui"
 
 import { ProjectSummary } from "./project-summary"
 import { TaskGantt } from "./task-gantt"

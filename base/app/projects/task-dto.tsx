@@ -5,11 +5,11 @@
  * para la vista de lista: ordenamiento, búsqueda, acciones y formularios.
  */
 
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper } from "@mmanto/devbout-ui"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpDownIcon } from "@hugeicons/core-free-icons"
 
-import { type DataTableFeatures } from "@/components/data-table/features"
+import { type DataTableFeatures } from "@mmanto/devbout-ui"
 import {
   defineTableDTO,
   type CreateDTO,
@@ -17,8 +17,8 @@ import {
   type EditDTO,
   type FieldDTO,
   type FieldValues,
-} from "@/components/data-table/types"
-import { Button } from "@/components/ui/button"
+} from "@mmanto/devbout-ui"
+import { Button } from "@mmanto/devbout-ui"
 
 import { PriorityBadge, TaskStatusBadge } from "./project-badges"
 import {

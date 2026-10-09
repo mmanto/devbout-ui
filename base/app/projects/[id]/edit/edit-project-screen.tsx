@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation"
 import {
   EntityFormFields,
   FormFooter,
-} from "@/components/data-table/entity-form"
-import { type FieldValues } from "@/components/data-table/types"
-import { EntityView } from "@/components/entity-view"
-import { buttonVariants } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+} from "@mmanto/devbout-ui"
+import { type FieldValues } from "@mmanto/devbout-ui"
+import { EntityView } from "@mmanto/devbout-ui"
+import { buttonVariants } from "@mmanto/devbout-ui"
+import { Separator } from "@mmanto/devbout-ui"
 
 import { projectEdit } from "../../project-dto"
 import { ProjectSummary } from "../../project-summary"
