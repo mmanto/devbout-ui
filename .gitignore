@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+.oku/
+.orchestral/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+*.tsbuildinfo
