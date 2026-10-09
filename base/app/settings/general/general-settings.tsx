@@ -18,12 +18,7 @@ import {
 import { Button } from "@mmanto/devbout-ui"
 import { Separator } from "@mmanto/devbout-ui"
 
-import {
-  deployCreate,
-  deployDetail,
-  deployEdit,
-  type Deployment,
-} from "@/app/deployments/deploy-dto"
+import { deployEntity, type Deployment } from "@/app/deployments/deploy-dto"
 
 const sample: Deployment = {
   project: "acme-web",
@@ -149,28 +144,28 @@ export function GeneralSettings() {
 
       {preview === "create" ? (
         <CreateEntity
-          create={deployCreate}
+          entity={deployEntity}
           open
           onOpenChange={(open) => {
             if (!open) setPreview(null)
           }}
-          onSubmit={() => setPreview(null)}
+          onSaved={() => setPreview(null)}
         />
       ) : null}
       {preview === "edit" ? (
         <EditEntity
-          edit={deployEdit}
+          entity={deployEntity}
           row={sample}
           open
           onOpenChange={(open) => {
             if (!open) setPreview(null)
           }}
-          onSubmit={() => setPreview(null)}
+          onSaved={() => setPreview(null)}
         />
       ) : null}
       {preview === "detail" ? (
         <DetailEntity
-          detail={deployDetail}
+          entity={deployEntity}
           row={sample}
           open
           onOpenChange={(open) => {

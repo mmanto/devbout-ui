@@ -1,7 +1,26 @@
 import type { ReactNode } from "react"
 import type { ColumnDef, RowData } from "@tanstack/react-table"
 
+import type { EntityViewMode } from "../entity-view"
 import type { DataTableFeatures } from "./features"
+import type {
+  EntitySchema,
+  EntityText,
+  EntityTitle,
+  FieldValues,
+} from "./entity-schema"
+
+export type {
+  EntityLabels,
+  EntityMessages,
+  EntityText,
+  EntityTitle,
+  FieldDTO,
+  FieldRules,
+  FieldValues,
+  FieldView,
+  SelectOption,
+} from "./entity-schema"
 
 export type TableActionContext<TData> = {
   add: (row: TData) => void
@@ -9,45 +28,6 @@ export type TableActionContext<TData> = {
   remove: (rows: TData[]) => void
   clearSelection: () => void
 }
-
-/** Values held by an entity form while editing — every control yields a string. */
-export type FieldValues = Record<string, string>
-
-/**
- * Option of a `select` field. A plain string is both the value and the label;
- * use `{ value, label }` when the stored value differs from the visible text
- * (e.g. identifier in the data, Spanish text in the UI).
- */
-export type SelectOption = string | { value: string; label: string }
-
-type FieldBase = {
-  name: string
-  label: string
-  required?: boolean
-  defaultValue?: string
-}
-
-export type FieldDTO =
-  | (FieldBase & { kind: "text"; placeholder?: string })
-  | (FieldBase & { kind: "textarea"; placeholder?: string; rows?: number })
-  | (FieldBase & { kind: "date" })
-  | (FieldBase & {
-      kind: "number"
-      placeholder?: string
-      min?: number
-      max?: number
-      step?: number
-    })
-  | (FieldBase & { kind: "color" })
-  /** Comma separated list of values; `build` splits it into an array. */
-  | (FieldBase & { kind: "tags"; placeholder?: string })
-  | (FieldBase & {
-      kind: "select"
-      placeholder?: string
-      options: readonly SelectOption[]
-    })
-
-export type EntityTitle<TData> = string | ((row: TData) => string)
 
 export type RowActionDTO<TData> = {
   id: string
@@ -63,54 +43,69 @@ export type BulkActionDTO<TData> = {
   run: (rows: TData[], ctx: TableActionContext<TData>) => void
 }
 
-export type CreateDTO<TData> = {
-  triggerLabel: string
-  /** Trigger button variant; `outline` unless creating is the page's main action. */
-  triggerVariant?: "default" | "outline"
-  title: string
-  description?: string
-  submitLabel: string
-  cancelLabel?: string
-  fields: readonly FieldDTO[]
-  build: (values: FieldValues) => TData
+/** Sección de un detalle declarativo. */
+export type DetailSection<TData> =
+  | {
+      kind: "fields"
+      title?: string
+      /** Nombres de campos del schema, en orden; default: todos los visibles. */
+      fields?: readonly string[]
+    }
+  /** Escape hatch por bloque (métricas, tablas hijas, acciones). */
+  | { kind: "custom"; render: (row: TData) => ReactNode }
+
+/** Ajustes de una acción (crear / editar / ver). Todo cae a `schema.labels`. */
+export type EntityModeDTO<TData> = {
+  label?: string
+  title?: EntityTitle<TData>
+  description?: EntityText<TData>
+  submitLabel?: string
+  view?: EntityViewMode
 }
 
-export type EditDTO<TData> = {
-  /** Row action label that opens the edit view. */
-  label: string
-  /**
-   * Route of the edit screen. When set, the row action navigates there instead
-   * of opening the edit view over the table.
-   */
-  href?: (row: TData) => string
-  title: EntityTitle<TData>
-  description?: string
-  submitLabel: string
-  cancelLabel?: string
-  fields: readonly FieldDTO[]
-  /** Current row values, used to seed the form. */
-  toValues: (row: TData) => FieldValues
-  build: (values: FieldValues, row: TData) => TData
+/**
+ * Declaración completa de una entidad: el schema serializable más la glue
+ * mínima. De acá el paquete deriva las tres superficies (crear / editar / ver),
+ * y la tabla saca sus acciones de fila y su botón de alta.
+ */
+export type EntityDTO<TData> = {
+  /** Spec serializable — única declaración del formulario y su detalle. */
+  schema: EntitySchema
+
+  // ── glue (funciones; fuera del schema portable) ──────────────────────
+  /** Identidad estable de fila. Requerido si la entidad tiene detalle/edición. */
+  rowId?: (row: TData) => string
+  /** Valores del form desde una fila. Default: `toFieldValues(schema.fields, row)`. */
+  toValues?: (row: TData) => FieldValues
+  /** Arma la entidad desde los valores; `row` es `undefined` cuando es un alta. */
+  build?: (values: FieldValues, row: TData | undefined) => TData
+  /** Alternativa contra la API a `build`: se espera, deshabilita el pie y muestra el error. */
+  onSubmit?: (values: FieldValues, row: TData | undefined) => void | Promise<void>
+  /** Validación extra; pisa el mensaje del schema para el mismo `name`. */
+  validate?: (values: FieldValues) => Record<string, string> | null
+
+  /** Superficie por defecto de los tres modos. */
+  view?: EntityViewMode
+  create?: EntityModeDTO<TData> & { variant?: "default" | "outline" }
+  edit?: EntityModeDTO<TData> & { href?: (row: TData) => string }
+  detail?: EntityModeDTO<TData> & {
+    href?: (row: TData) => string
+    closeLabel?: string
+    /** Clases de la superficie, por modo (para un detalle más ancho). */
+    className?: Partial<Record<EntityViewMode, string>>
+    /** Secciones declarativas; default: una sección `fields` con todo el schema. */
+    sections?: readonly DetailSection<TData>[]
+    /** Reemplaza el cuerpo completo del detalle. */
+    surface?: (args: DetailSurfaceArgs<TData>) => ReactNode
+  }
 }
 
-export type DetailFieldDTO<TData> = {
-  label: string
-  value: (row: TData) => ReactNode
-}
-
-export type DetailDTO<TData> = {
-  /** Row action label that opens the detail view. */
-  label: string
-  /**
-   * Route of the detail screen. When set, opening the detail (row click or row
-   * action) navigates there instead of showing it over the table.
-   */
-  href?: (row: TData) => string
-  title: EntityTitle<TData>
-  description?: EntityTitle<TData>
-  closeLabel?: string
-  /** Body of the detail view; omitted when `detailSurface` provides it. */
-  fields?: readonly DetailFieldDTO<TData>[]
+/**
+ * Identity helper de una entidad: mantiene el tipo `EntityDTO<TData>` fijado en
+ * la declaración para que el consumidor tenga autocomplete y errores tempranos.
+ */
+export function defineEntity<TData>(entity: EntityDTO<TData>): EntityDTO<TData> {
+  return entity
 }
 
 /** Arguments handed to a custom detail surface. */
@@ -155,18 +150,13 @@ export type ConfirmDTO = {
 export type TableDTO<TData extends RowData> = {
   columns: ColumnDef<DataTableFeatures, TData>[]
   /**
-   * Stable identity of a row. Required when the row object is replaced while
-   * a detail surface stays open (the surface always receives the live row).
-   */
-  rowId?: (row: TData) => string
-  /**
    * Called with the full row list after every add, update or remove. Providing
    * it hands ownership of the rows to the caller: the table then always renders
    * `data`, so the owner must store the list it receives.
    */
   onDataChange?: (rows: TData[]) => void
-  /** Replaces the built-in detail body with an entity-owned surface. */
-  detailSurface?: (args: DetailSurfaceArgs<TData>) => ReactNode
+  /** Alta, edición y detalle de la entidad, declarados una sola vez. */
+  entity?: EntityDTO<TData>
   /** Visible text of the column visibility menu, keyed by column id. */
   columnLabels?: Record<string, string>
   /** Columns rendered by the model but not shown in the table. */
@@ -176,10 +166,12 @@ export type TableDTO<TData extends RowData> = {
   search?: { columnId: string; placeholder: string }
   pageSizeOptions?: number[]
   selectable?: boolean
+  /**
+   * Default surface for create/edit/detail when they don't set their own
+   * `view`. Falls back to the global preference of `EntityViewProvider`.
+   */
+  view?: EntityViewMode
   labels?: TableLabels
-  create?: CreateDTO<TData>
-  edit?: EditDTO<TData>
-  detail?: DetailDTO<TData>
   rowActions?: readonly RowActionDTO<TData>[]
   rowActionsMenuLabel?: string
   bulkActions?: readonly BulkActionDTO<TData>[]

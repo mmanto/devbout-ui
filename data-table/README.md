@@ -133,36 +133,104 @@ Sin provider, un `href` cae a `window.location.assign`.
 ## Uso
 
 ```tsx
-import { DataTable, defineTableDTO, EntityViewProvider } from "@mmanto/devbout-ui"
+import {
+  DataTable,
+  defineEntity,
+  defineEntitySchema,
+  defineTableDTO,
+  EntityViewProvider,
+} from "@mmanto/devbout-ui"
+
+// Una sola declaración por entidad: el schema (JSON puro) más la glue.
+const clientEntity = defineEntity<Client>({
+  schema: defineEntitySchema({
+    fields: [
+      {
+        kind: "text",
+        name: "name",
+        label: "Nombre",
+        required: true,
+        rules: { maxLength: 80 },
+      },
+      { kind: "date", name: "since", label: "Cliente desde" },
+      // Derivado por el `build`: se ve en el detalle, no se edita.
+      { kind: "text", name: "plan", label: "Plan", formHidden: true },
+    ],
+    labels: {
+      createLabel: "Nuevo cliente",
+      createTitle: "Nuevo cliente",
+      createSubmit: "Crear cliente",
+      editLabel: "Editar",
+      editSubmit: "Guardar cambios",
+      detailLabel: "Ver",
+      cancel: "Cancelar",
+      messages: { required: "Este campo es obligatorio" },
+    },
+  }),
+  rowId: (row) => row.id,
+  // `row` es `undefined` en un alta.
+  build: (values, row) => ({
+    id: row?.id ?? crypto.randomUUID(),
+    name: values.name.trim(),
+    since: values.since,
+    plan: row?.plan ?? "free",
+  }),
+  create: { variant: "default" },
+  edit: { title: (row) => `Editar ${row.name}` },
+  detail: { title: (row) => row.name, description: "Detalle del cliente" },
+})
 
 const dto = defineTableDTO<Client>({
-  labels: { empty: "Sin clientes", search: "Buscar cliente…" },
+  entity: clientEntity,
+  search: { columnId: "name", placeholder: "Buscar cliente…" },
   columns: [
-    { id: "name", header: "Cliente", cell: (row) => row.name },
-    { id: "phone", header: "Teléfono", cell: (row) => row.phone },
+    { id: "name", accessorKey: "name", header: "Cliente" },
+    { id: "phone", accessorKey: "phone", header: "Teléfono" },
   ],
-  detail: { label: "Ver", fields: [{ id: "notes", label: "Notas", value: (row) => row.notes }] },
-  edit: {
-    label: "Editar",
-    fields: [{ id: "name", label: "Cliente", required: true }],
-    onSubmit: async (values, row) => { await save(row.id, values) },
-  },
   rowActions: [
     { id: "delete", label: "Eliminar", variant: "destructive", run: async (row) => remove(row.id) },
   ],
 })
 
-<EntityViewProvider>
+<EntityViewProvider locale="es-AR">
   <DataTable dto={dto} data={clients} />
 </EntityViewProvider>
 ```
 
-`EntityViewProvider` decide si el detalle/edición se abre en **modal**, **drawer** (por
-defecto) o **página completa** (`useEntityViewMode()`).
+`create`, `edit` y `detail` salen del **mismo schema**: `EntityViewProvider` decide
+la superficie (preferencia global) y cada modo puede forzarla con `view` (`modal`,
+`drawer` o `page`), con `TableDTO.view` como default de la tabla. En `page` la vista
+ocupa el área en lugar de la grilla. El botón de alta, las acciones de fila y el
+cuerpo del detalle se derivan solos; un detalle con forma propia se declara con
+`detail.surface` (escape hatch), y `detail.sections` reparte los campos en bloques.
 
-La API completa (tipos `TableDTO`, `FieldDTO`, `DetailDTO`, `EditDTO`, `RowActionDTO`,
-`BulkActionDTO`, `ConfirmDTO`, `TableLabels`, `defineTableDTO`) está exportada y
-tipada; `TableLabels` concentra los textos para que la app los traduzca a su idioma.
+El alta/edición acepta dos caminos: `build` (arma la fila en memoria; la tabla la
+inserta/actualiza con `ctx`) para tablas locales, u `onSubmit` (async) para tablas
+contra la API. Con `onSubmit` el form no toca las filas: espera la promesa, muestra
+el error si falla y cierra si sale bien — el dueño refresca (o setea la lista con
+`onDataChange`).
+
+La validación vive en el paquete (sin dependencias): `required`, `minLength`,
+`maxLength`, `pattern`, `min` y `max` salen de las `rules` del campo, y
+`entity.validate(values)` agrega reglas propias. El error se muestra bajo el campo
+(el resumen queda en el cuerpo del formulario) y el envío queda bloqueado. Los
+textos caen a un default en inglés del paquete y se traducen desde `schema.labels`;
+`EntityViewProvider` acepta `locale`, `dateFormat` y `numberFormat` para el detalle.
+
+Una pantalla propia puede reusar el formulario: `useEntityForm(entity, row)` da el
+estado y `EntityForm` / `EntityFormFooter` la presentación (es lo que usan
+`CreateEntity` / `EditEntity` por dentro, con un slot `header` para un resumen en
+vivo).
+
+La API completa (tipos `TableDTO`, `EntityDTO`, `EntityModeDTO`, `EntitySchema`,
+`FieldDTO`, `FieldRules`, `FieldView`, `DetailSection`, `EntityLabels`,
+`EntityMessages`, `RowActionDTO`, `BulkActionDTO`, `ConfirmDTO`, `TableLabels`;
+helpers `defineEntitySchema`, `defineEntity`, `defineTableDTO`, `validateField`,
+`validateSchema`, `initialValues`, `toFieldValues`, `resolveEntityText`;
+componentes `EntityForm`, `EntityFormFooter`, `CreateEntity`, `EditEntity`,
+`DetailEntity`, `useEntityForm`, `useEntityFormat`) está exportada y tipada;
+`TableLabels` y `EntityLabels` concentran los textos para que la app los traduzca a
+su idioma.
 
 ## Versionado
 

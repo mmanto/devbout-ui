@@ -97,7 +97,11 @@ export function DataTable<TData extends RowData>({
 
   const labels = dto.labels
   const confirm = dto.confirm
-  const rowId = dto.rowId
+  const entity = dto.entity
+  const rowId = entity?.rowId
+  const createConfig = entity?.create
+  const editConfig = entity?.edit
+  const detailConfig = entity?.detail
   const onDataChange = dto.onDataChange
 
   const ctx = React.useMemo<TableActionContext<TData>>(() => {
@@ -130,11 +134,14 @@ export function DataTable<TData extends RowData>({
   const rowActions = React.useMemo<RowActionDTO<TData>[]>(() => {
     const actions: RowActionDTO<TData>[] = []
 
-    if (dto.detail) {
-      const href = dto.detail.href
+    if (detailConfig) {
+      const href = detailConfig.href
       actions.push({
         id: "detail",
-        label: dto.detail.label,
+        label:
+          detailConfig.label ??
+          entity?.schema.labels?.detailLabel ??
+          "View",
         run: (row) => {
           if (href) {
             navigate(href(row))
@@ -144,11 +151,12 @@ export function DataTable<TData extends RowData>({
         },
       })
     }
-    if (dto.edit) {
-      const href = dto.edit.href
+    if (editConfig) {
+      const href = editConfig.href
       actions.push({
         id: "edit",
-        label: dto.edit.label,
+        label:
+          editConfig.label ?? entity?.schema.labels?.editLabel ?? "Edit",
         run: (row) => {
           if (href) {
             navigate(href(row))
@@ -176,7 +184,7 @@ export function DataTable<TData extends RowData>({
     }
 
     return actions
-  }, [dto.detail, dto.edit, dto.rowActions, confirm, ctx, navigate])
+  }, [detailConfig, editConfig, dto.rowActions, confirm, ctx, navigate, entity])
 
   const columns = React.useMemo(() => {
     const result: ColumnDef<DataTableFeatures, TData>[] = []
@@ -264,52 +272,59 @@ export function DataTable<TData extends RowData>({
     searchInputRef.current?.focus()
   }
 
+  /**
+   * Superficie de un panel: el `view` propio de la acción, si no el de la
+   * tabla. El fallback final (preferencia global) lo resuelve `EntityView`
+   * cuando llega `undefined`.
+   */
+  const viewFor = (kind: "create" | "edit" | "detail") => {
+    if (kind === "create") return createConfig?.view ?? dto.view
+    if (kind === "edit") return editConfig?.view ?? dto.view
+    return detailConfig?.view ?? dto.view
+  }
+
   const panels = (
     <>
-      {dto.create && panel?.kind === "create" ? (
+      {entity && createConfig && panel?.kind === "create" ? (
         <CreateEntity
-          create={dto.create}
+          entity={entity}
           open
+          mode={viewFor("create")}
           onOpenChange={(open) => {
             if (!open) setPanel(null)
           }}
-          onSubmit={(row) => {
-            ctx.add(row)
+          onSaved={(row) => {
+            if (row) ctx.add(row)
             setPanel(null)
           }}
         />
       ) : null}
-      {dto.edit && panel?.kind === "edit" && panelRow ? (
+      {entity && editConfig && panel?.kind === "edit" && panelRow ? (
         <EditEntity
-          edit={dto.edit}
+          entity={entity}
           row={panelRow}
           open
+          mode={viewFor("edit")}
           onOpenChange={(open) => {
             if (!open) setPanel(null)
           }}
-          onSubmit={(next) => {
-            ctx.update(panelRow, next)
+          onSaved={(row) => {
+            if (row) ctx.update(panelRow, row)
             setPanel(null)
           }}
         />
       ) : null}
-      {panel?.kind === "detail" && panelRow ? (
-        dto.detailSurface ? (
-          dto.detailSurface({
-            row: panelRow,
-            ctx,
-            close: () => setPanel(null),
-          })
-        ) : dto.detail ? (
-          <DetailEntity
-            detail={dto.detail}
-            row={panelRow}
-            open
-            onOpenChange={(open) => {
-              if (!open) setPanel(null)
-            }}
-          />
-        ) : null
+      {entity && detailConfig && panel?.kind === "detail" && panelRow ? (
+        <DetailEntity
+          entity={entity}
+          row={panelRow}
+          ctx={ctx}
+          open
+          mode={viewFor("detail")}
+          onOpenChange={(open) => {
+            if (!open) setPanel(null)
+          }}
+        />
       ) : null}
       {confirm && confirmRequest ? (
         <ConfirmDialog
@@ -331,7 +346,8 @@ export function DataTable<TData extends RowData>({
   )
 
   // A page view takes over the whole content area instead of the table.
-  if (mode === "page" && panel) {
+  const panelMode = panel ? (viewFor(panel.kind) ?? mode) : mode
+  if (panelMode === "page" && panel) {
     return <div className="flex w-full flex-1 flex-col">{panels}</div>
   }
 
@@ -373,19 +389,21 @@ export function DataTable<TData extends RowData>({
             </Button>
           </div>
         ) : null}
-        {search && dto.create ? (
+        {search && createConfig ? (
           <Separator
             orientation="vertical"
             className="data-vertical:h-4 data-vertical:self-auto"
           />
         ) : null}
-        {dto.create ? (
+        {createConfig ? (
           <Button
-            variant={dto.create.triggerVariant ?? "outline"}
+            variant={createConfig.variant ?? "outline"}
             onClick={() => setPanel({ kind: "create" })}
           >
             <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
-            {dto.create.triggerLabel}
+            {createConfig.label ??
+              entity?.schema.labels?.createLabel ??
+              "New"}
           </Button>
         ) : null}
         {bulkRows.length > 1 ? (
@@ -504,9 +522,9 @@ export function DataTable<TData extends RowData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={dto.detail ? "cursor-pointer" : undefined}
+                  className={detailConfig ? "cursor-pointer" : undefined}
                   onClick={
-                    dto.detail
+                    detailConfig
                       ? (event) => {
                           // Let the checkbox, menus, links and other controls keep
                           // their own behaviour.
@@ -518,8 +536,8 @@ export function DataTable<TData extends RowData>({
                           ) {
                             return
                           }
-                          if (dto.detail?.href) {
-                            navigate(dto.detail.href(row.original))
+                          if (detailConfig.href) {
+                            navigate(detailConfig.href(row.original))
                             return
                           }
                           setPanel({ kind: "detail", row: row.original })

@@ -38,7 +38,10 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <ThemePresetProvider>
-            <EntityViewProvider>
+            <EntityViewProvider
+              locale="es-AR"
+              dateFormat={{ day: "2-digit", month: "2-digit", year: "numeric" }}
+            >
               <SidebarProvider>
                 <AppSidebar />
                 <SidebarInset>{children}</SidebarInset>

@@ -16,9 +16,8 @@ import { buttonVariants } from "@mmanto/devbout-ui"
 import { Separator } from "@mmanto/devbout-ui"
 import { SidebarTrigger } from "@mmanto/devbout-ui"
 
-import { taskEdit } from "../../../../task-dto"
+import { taskEntity } from "../../../../task-dto"
 import { useProjects } from "../../../../projects-store"
-import { type Task } from "../../../../project-types"
 
 /**
  * Pantalla propia de edición de una tarea, hermana de la de proyecto: entra
@@ -84,20 +83,22 @@ export function EditTaskScreen({
 
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <EditEntity
-          edit={taskEdit}
+          entity={taskEntity}
           row={task}
           open
           mode="page"
           onOpenChange={(open) => {
             if (!open) back()
           }}
-          onSubmit={(next: Task) => {
-            updateProject({
-              ...project,
-              tasks: project.tasks.map((current) =>
-                current.id === next.id ? next : current
-              ),
-            })
+          onSaved={(next) => {
+            if (next) {
+              updateProject({
+                ...project,
+                tasks: project.tasks.map((current) =>
+                  current.id === next.id ? next : current
+                ),
+              })
+            }
             back()
           }}
         />

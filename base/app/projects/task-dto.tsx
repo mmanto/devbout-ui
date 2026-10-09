@@ -11,10 +11,10 @@ import { ArrowUpDownIcon } from "@hugeicons/core-free-icons"
 
 import { type DataTableFeatures } from "@mmanto/devbout-ui"
 import {
+  defineEntitySchema,
+  defineEntity,
   defineTableDTO,
-  type CreateDTO,
-  type DetailDTO,
-  type EditDTO,
+  type EntityDTO,
   type FieldDTO,
   type FieldValues,
 } from "@mmanto/devbout-ui"
@@ -186,44 +186,31 @@ const buildTask = (values: FieldValues): Omit<Task, "id"> => ({
   tags: parseTags(values.tags ?? ""),
 })
 
-export const taskCreate: CreateDTO<Task> = {
-  triggerLabel: "Nueva tarea",
-  title: "Nueva tarea",
-  description: "La tarea se agrega al proyecto y actualiza su progreso.",
-  submitLabel: "Crear tarea",
-  cancelLabel: "Cancelar",
-  fields,
-  build: (values) => ({ id: newId(), ...buildTask(values) }),
-}
-
-export const taskEdit: EditDTO<Task> = {
-  label: "Editar tarea",
-  title: (row) => `Editar ${row.title}`,
-  description: "Actualizá los datos de la tarea.",
-  submitLabel: "Guardar cambios",
-  cancelLabel: "Cancelar",
-  fields,
-  toValues: (row) => ({
-    title: row.title,
-    description: row.description,
-    status: row.status,
-    priority: row.priority,
-    assignee: row.assignee,
-    startDate: row.startDate,
-    endDate: row.endDate,
-    estimatedHours:
-      row.estimatedHours === null ? "" : String(row.estimatedHours),
-    tags: row.tags.join(", "),
+export const taskEntity: EntityDTO<Task> = defineEntity<Task>({
+  schema: defineEntitySchema({
+    fields,
+    labels: {
+      createLabel: "Nueva tarea",
+      createTitle: "Nueva tarea",
+      createDescription:
+        "La tarea se agrega al proyecto y actualiza su progreso.",
+      createSubmit: "Crear tarea",
+      editLabel: "Editar tarea",
+      editDescription: "Actualizá los datos de la tarea.",
+      editSubmit: "Guardar cambios",
+      detailLabel: "Ver detalle",
+      detailClose: "Cerrar",
+      cancel: "Cancelar",
+    },
   }),
-  build: (values, row) => ({ id: row.id, ...buildTask(values) }),
-}
-
-export const taskDetail: DetailDTO<Task> = {
-  label: "Ver detalle",
-  title: (row) => row.title,
-  description: (row) => row.description || "Sin descripción",
-  closeLabel: "Cerrar",
-}
+  rowId: (row) => row.id,
+  build: (values, row) => ({ id: row?.id ?? newId(), ...buildTask(values) }),
+  edit: { title: (row) => `Editar ${row.title}` },
+  detail: {
+    title: (row) => row.title,
+    description: (row) => row.description || "Sin descripción",
+  },
+})
 
 export const taskDelete = {
   title: "Eliminar tarea",
@@ -237,7 +224,6 @@ export const taskDelete = {
 
 export const taskDTO = defineTableDTO<Task>({
   columns,
-  rowId: (row) => row.id,
   hiddenColumns: ["search", "endDate", "estimatedHours"],
   columnLabels: {
     title: "Tarea",
@@ -263,9 +249,7 @@ export const taskDTO = defineTableDTO<Task>({
       `${selected} de ${total} tarea(s) seleccionada(s).`,
     selectedCount: (count) => `${count} seleccionadas`,
   },
-  create: taskCreate,
-  edit: taskEdit,
-  detail: taskDetail,
+  entity: taskEntity,
   rowActionsMenuLabel: "Acciones",
   rowActions: [
     {

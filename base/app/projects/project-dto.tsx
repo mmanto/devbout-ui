@@ -14,10 +14,10 @@ import { ArrowUpDownIcon } from "@hugeicons/core-free-icons"
 
 import { type DataTableFeatures } from "@mmanto/devbout-ui"
 import {
+  defineEntitySchema,
+  defineEntity,
   defineTableDTO,
-  type CreateDTO,
-  type DetailDTO,
-  type EditDTO,
+  type EntityDTO,
   type FieldDTO,
   type FieldValues,
 } from "@mmanto/devbout-ui"
@@ -204,69 +204,71 @@ const buildProjectFields = (values: FieldValues) => ({
   team: parseTags(values.team ?? ""),
 })
 
-export const projectCreate: CreateDTO<Project> = {
-  triggerLabel: "Nuevo",
-  triggerVariant: "default",
-  title: "Nuevo proyecto",
-  description:
-    "Cargá los datos del proyecto. Se agrega al inicio de la grilla.",
-  submitLabel: "Crear proyecto",
-  cancelLabel: "Cancelar",
-  fields,
-  build: (values) => ({
-    id: newId(),
-    ...buildProjectFields(values),
-    // Sin selector de color en el formulario: todo proyecto nuevo nace con el
-    // acento base. La grilla sigue usando `color` como indicador.
-    color: "#2563eb",
-    tasks: [],
+export const projectEntity: EntityDTO<Project> = defineEntity<Project>({
+  schema: defineEntitySchema({
+    fields,
+    labels: {
+      createLabel: "Nuevo",
+      createTitle: "Nuevo proyecto",
+      createDescription:
+        "Cargá los datos del proyecto. Se agrega al inicio de la grilla.",
+      createSubmit: "Crear proyecto",
+      editLabel: "Editar proyecto",
+      editDescription:
+        "Actualizá los datos del proyecto. Las tareas no se modifican.",
+      editSubmit: "Guardar cambios",
+      detailLabel: "Ver detalle",
+      detailClose: "Cerrar",
+      cancel: "Cancelar",
+      empty: "—",
+      messages: { required: "Este campo es obligatorio" },
+    },
   }),
-}
-
-export const projectEdit: EditDTO<Project> = {
-  label: "Editar proyecto",
-  // La edición vive en su propia pantalla, no sobre la grilla.
-  href: (row) => `/projects/${row.id}/edit`,
-  title: (row) => `Editar ${row.name}`,
-  description: "Actualizá los datos del proyecto. Las tareas no se modifican.",
-  submitLabel: "Guardar cambios",
-  cancelLabel: "Cancelar",
-  fields,
-  toValues: (row) => ({
-    name: row.name,
-    business: row.business,
-    description: row.description,
-    startDate: row.startDate,
-    endDate: row.endDate,
-    status: row.status,
-    priority: row.priority,
-    team: row.team.join(", "),
-  }),
-  // El color no se edita: se conserva el de la fila.
-  build: (values, row) => ({ ...row, ...buildProjectFields(values) }),
-}
-
-export const projectDetail: DetailDTO<Project> = {
-  label: "Ver detalle",
-  title: (row) => row.name,
-  description: (row) => row.description || "Sin descripción",
-  closeLabel: "Cerrar",
-}
+  rowId: (row) => row.id,
+  build: (values, row) =>
+    row
+      ? // El color no se edita: se conserva el de la fila.
+        { ...row, ...buildProjectFields(values) }
+      : {
+          id: newId(),
+          ...buildProjectFields(values),
+          // Sin selector de color en el formulario: todo proyecto nuevo nace
+          // con el acento base. La grilla sigue usando `color` como indicador.
+          color: "#2563eb",
+          tasks: [],
+        },
+  create: { variant: "default" },
+  edit: {
+    // La edición vive en su propia pantalla, no sobre la grilla.
+    href: (row) => `/projects/${row.id}/edit`,
+    title: (row) => `Editar ${row.name}`,
+  },
+  detail: {
+    title: (row) => row.name,
+    description: (row) => row.description || "Sin descripción",
+    // El detalle ocupa el ancho disponible: la pantalla usa todo el ancho y el
+    // drawer tres cuartos (el sheet lo topea con su propia variante
+    // `data-[side=right]`, así que hay que anularlo con la misma variante).
+    className: {
+      modal: "sm:max-w-5xl",
+      drawer: "data-[side=right]:sm:max-w-none",
+    },
+    surface: ({ row, ctx }) => (
+      <ProjectDetail
+        project={row}
+        onChange={(next) => ctx.update(row, next)}
+      />
+    ),
+  },
+})
 
 export const projectDTO = defineTableDTO<Project>({
   columns,
-  rowId: (row) => row.id,
   hiddenColumns: ["search"],
   // Sin columna de checks: la grilla se opera fila por fila.
   selectable: false,
   header: (rows) => <ProjectsHeader projects={rows} />,
-  detailSurface: ({ row, ctx, close }) => (
-    <ProjectDetail
-      project={row}
-      onChange={(next) => ctx.update(row, next)}
-      close={close}
-    />
-  ),
+  entity: projectEntity,
   columnLabels: {
     name: "Proyecto",
     status: "Estado",
@@ -285,9 +287,6 @@ export const projectDTO = defineTableDTO<Project>({
     previous: "Anterior",
     next: "Siguiente",
   },
-  create: projectCreate,
-  edit: projectEdit,
-  detail: projectDetail,
   rowActionsMenuLabel: "Acciones",
   rowActions: [
     {

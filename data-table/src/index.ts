@@ -22,6 +22,21 @@ export { createColumnHelper } from "@tanstack/react-table"
 export type { ColumnDef, RowData } from "@tanstack/react-table"
 
 export * from "./data-table/types"
+export {
+  defineEntitySchema,
+  initialValues,
+  resolveEntityText,
+  toFieldValues,
+  validateField,
+  validateSchema,
+} from "./data-table/entity-schema"
+export type {
+  EntityLabels,
+  EntityMessages,
+  EntitySchema,
+  FieldRules,
+  FieldView,
+} from "./data-table/entity-schema"
 export { DataTable } from "./data-table/data-table"
 export { features } from "./data-table/features"
 export type { DataTableFeatures } from "./data-table/features"
@@ -31,13 +46,19 @@ export { DetailEntity } from "./data-table/entity-detail"
 export {
   CreateEntity,
   EditEntity,
-  EntityFormFields,
-  FormFooter,
+  EntityForm,
+  EntityFormFooter,
+  useEntityForm,
 } from "./data-table/entity-form"
 
 // ── vista de entidad (modal / drawer / página) ────────────────────────────────
-export { EntityView, EntityViewProvider, useEntityViewMode } from "./entity-view"
-export type { EntityViewMode } from "./entity-view"
+export {
+  EntityView,
+  EntityViewProvider,
+  useEntityFormat,
+  useEntityViewMode,
+} from "./entity-view"
+export type { EntityFormat, EntityViewMode } from "./entity-view"
 
 // ── primitivas base-mira ──────────────────────────────────────────────────────
 export {
@@ -49,6 +70,7 @@ export {
   AvatarImage,
 } from "./ui/avatar"
 export { Badge, badgeVariants } from "./ui/badge"
+export type { BadgeVariant } from "./ui/badge"
 export {
   Breadcrumb,
   BreadcrumbEllipsis,

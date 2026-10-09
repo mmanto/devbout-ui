@@ -6,10 +6,10 @@ import { ArrowUpDownIcon } from "@hugeicons/core-free-icons"
 
 import { type DataTableFeatures } from "@mmanto/devbout-ui"
 import {
+  defineEntitySchema,
+  defineEntity,
   defineTableDTO,
-  type CreateDTO,
-  type DetailDTO,
-  type EditDTO,
+  type EntityDTO,
   type FieldDTO,
 } from "@mmanto/devbout-ui"
 import { Button } from "@mmanto/devbout-ui"
@@ -60,6 +60,7 @@ const columns = columnHelper.columns([
   }),
 ])
 
+// Una sola declaración de campos: de acá salen el alta, la edición y el detalle.
 const fields: readonly FieldDTO[] = [
   {
     kind: "text",
@@ -67,6 +68,7 @@ const fields: readonly FieldDTO[] = [
     label: "Project",
     placeholder: "acme-web",
     required: true,
+    rules: { maxLength: 40 },
   },
   {
     kind: "text",
@@ -74,71 +76,57 @@ const fields: readonly FieldDTO[] = [
     label: "Branch",
     placeholder: "main",
     defaultValue: "main",
+    rules: { pattern: "^[A-Za-z0-9._/-]+$" },
   },
   {
     kind: "select",
     name: "status",
     label: "Status",
-    options: ["Ready", "Building", "Failed"],
     defaultValue: "Building",
+    display: "badge",
+    options: [
+      { value: "Ready", label: "Ready", variant: "success" },
+      { value: "Building", label: "Building", variant: "warning" },
+      { value: "Failed", label: "Failed", variant: "destructive" },
+    ],
   },
+  // Derivado por el build: se ve en el detalle, no se edita.
+  { kind: "text", name: "duration", label: "Duration", formHidden: true },
 ]
 
-export const deployCreate: CreateDTO<Deployment> = {
-  triggerLabel: "Add project",
-  title: "Add project",
-  description:
-    "Create a new project deployment. It will be added to the table.",
-  submitLabel: "Create project",
-  fields,
-  build: (values) => ({
-    project: values.project.trim(),
-    branch: values.branch.trim() || "main",
-    status: values.status as Deployment["status"],
-    duration: "—",
-  }),
-}
-
-export const deployEdit: EditDTO<Deployment> = {
-  label: "Edit deployment",
-  title: (row) => `Edit ${row.project}`,
-  description: "Update the deployment metadata.",
-  submitLabel: "Save changes",
-  fields,
-  toValues: (row) => ({
-    project: row.project,
-    branch: row.branch,
-    status: row.status,
+export const deployEntity: EntityDTO<Deployment> = defineEntity<Deployment>({
+  schema: defineEntitySchema({
+    fields,
+    labels: {
+      createLabel: "Add project",
+      createTitle: "Add project",
+      createDescription:
+        "Create a new project deployment. It will be added to the table.",
+      createSubmit: "Create project",
+      editLabel: "Edit deployment",
+      editDescription: "Update the deployment metadata.",
+      editSubmit: "Save changes",
+      detailLabel: "View deployment",
+    },
   }),
   build: (values, row) => ({
-    ...row,
     project: values.project.trim(),
     branch: values.branch.trim() || "main",
     status: values.status as Deployment["status"],
+    duration: row?.duration ?? "—",
   }),
-}
-
-export const deployDetail: DetailDTO<Deployment> = {
-  label: "View deployment",
-  title: (row) => row.project,
-  description: "Read-only summary of the selected deployment.",
-  fields: [
-    { label: "Project", value: (row) => row.project },
-    { label: "Branch", value: (row) => row.branch },
-    {
-      label: "Status",
-      value: (row) => <span className="capitalize">{row.status}</span>,
-    },
-    { label: "Duration", value: (row) => row.duration },
-  ],
-}
+  create: { variant: "default" },
+  edit: { title: (row) => `Edit ${row.project}` },
+  detail: {
+    title: (row) => row.project,
+    description: "Read-only summary of the selected deployment.",
+  },
+})
 
 export const deployDTO = defineTableDTO<Deployment>({
   columns,
   search: { columnId: "project", placeholder: "Filter projects..." },
-  create: deployCreate,
-  edit: deployEdit,
-  detail: deployDetail,
+  entity: deployEntity,
   rowActionsMenuLabel: "Actions",
   rowActions: [
     {

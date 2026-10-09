@@ -18,13 +18,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@mmanto/devbout-ui"
-import { EntityView } from "@mmanto/devbout-ui"
+import { DetailEntity } from "@mmanto/devbout-ui"
 import { buttonVariants } from "@mmanto/devbout-ui"
 import { Separator } from "@mmanto/devbout-ui"
 import { SidebarTrigger } from "@mmanto/devbout-ui"
 
 import { PriorityBadge, TaskStatusBadge } from "../../../project-badges"
-import { taskDetail } from "../../../task-dto"
+import { taskEntity } from "../../../task-dto"
 import { daysBetween, formatDate, type Task } from "../../../project-types"
 import { useProjects } from "../../../projects-store"
 
@@ -48,6 +48,59 @@ function TaskMetrics({ task }: { task: Task }) {
           ? "Sin estimar"
           : `${task.estimatedHours} h estimadas`}
       </span>
+    </div>
+  )
+}
+
+/**
+ * Cuerpo del detalle de tarea: métricas, estado con el acceso a la edición y
+ * los datos generales. Se inyecta como `surface` en la entidad Tarea.
+ */
+function TaskDetailBody({
+  task,
+  projectId,
+}: {
+  task: Task
+  projectId: string
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <TaskMetrics task={task} />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <TaskStatusBadge status={task.status} />
+        <PriorityBadge priority={task.priority} />
+        <Link
+          href={`/projects/${projectId}/tasks/${task.id}/edit`}
+          className={buttonVariants({
+            variant: "outline",
+            size: "sm",
+            className: "ml-auto",
+          })}
+        >
+          <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
+          Editar tarea
+        </Link>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <HugeiconsIcon icon={UserIcon} strokeWidth={2} />
+          {task.assignee || "Sin asignar"}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} />
+          <span className="tabular-nums">
+            {formatDate(task.startDate)} → {formatDate(task.endDate)}
+          </span>
+        </span>
+        {task.tags.length ? (
+          <span className="inline-flex items-center gap-1.5">
+            <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} />
+            {task.tags.join(", ")}
+          </span>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -114,63 +167,21 @@ export function TaskDetailScreen({
       </header>
 
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <EntityView
+        <DetailEntity
+          entity={{
+            ...taskEntity,
+            detail: {
+              ...taskEntity.detail,
+              surface: () => <TaskDetailBody task={task} projectId={projectId} />,
+            },
+          }}
+          row={task}
           open
           mode="page"
           onOpenChange={(open) => {
             if (!open) router.push("/projects")
           }}
-          title={
-            typeof taskDetail.title === "function"
-              ? taskDetail.title(task)
-              : taskDetail.title
-          }
-          description={
-            typeof taskDetail.description === "function"
-              ? taskDetail.description(task)
-              : taskDetail.description
-          }
-          backLabel={taskDetail.closeLabel}
-        >
-          <div className="flex flex-col gap-4">
-            <TaskMetrics task={task} />
-
-            <div className="flex flex-wrap items-center gap-2">
-              <TaskStatusBadge status={task.status} />
-              <PriorityBadge priority={task.priority} />
-              <Link
-                href={`/projects/${projectId}/tasks/${taskId}/edit`}
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className: "ml-auto",
-                })}
-              >
-                <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
-                Editar tarea
-              </Link>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <HugeiconsIcon icon={UserIcon} strokeWidth={2} />
-                {task.assignee || "Sin asignar"}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} />
-                <span className="tabular-nums">
-                  {formatDate(task.startDate)} → {formatDate(task.endDate)}
-                </span>
-              </span>
-              {task.tags.length ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} />
-                  {task.tags.join(", ")}
-                </span>
-              ) : null}
-            </div>
-          </div>
-        </EntityView>
+        />
       </div>
     </>
   )

@@ -66,19 +66,64 @@ function subscribeMode(listener: () => void) {
   }
 }
 
+/** Formato del contexto para el renderer de detalle. */
+export interface EntityFormat {
+  formatDate: (iso: string) => string
+  formatNumber: (value: number) => string
+}
+
 interface EntityViewContextValue {
   mode: EntityViewMode
   setMode: (mode: EntityViewMode) => void
+  format: EntityFormat
 }
 
 const EntityViewContext = React.createContext<EntityViewContextValue | null>(
   null
 )
 
+const DEFAULT_DATE_FORMAT: Intl.DateTimeFormatOptions = { dateStyle: "medium" }
+const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
+  maximumFractionDigits: 2,
+}
+
+/** Construye los formateadores del detalle; compartido por el provider y el fallback. */
+function createEntityFormat(
+  locale: string | undefined,
+  dateFormat: Intl.DateTimeFormatOptions | undefined,
+  numberFormat: Intl.NumberFormatOptions | undefined
+): EntityFormat {
+  const dateTime = new Intl.DateTimeFormat(locale, dateFormat ?? DEFAULT_DATE_FORMAT)
+  const numbers = new Intl.NumberFormat(locale, numberFormat ?? DEFAULT_NUMBER_FORMAT)
+
+  return {
+    formatDate: (iso) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+        return iso
+      }
+      return dateTime.format(new Date(`${iso}T00:00:00`))
+    },
+    formatNumber: (value) => numbers.format(value),
+  }
+}
+
+// Fuera de un provider (una página que no lo monta) el detalle igual necesita
+// formatear: cae a los defaults del runtime en vez de lanzar.
+let fallbackFormat: EntityFormat | null = null
+
 export function EntityViewProvider({
   children,
+  locale,
+  dateFormat,
+  numberFormat,
 }: {
   children: React.ReactNode
+  /** Locale BCP-47 para fechas y números. Default: el del runtime. */
+  locale?: string
+  /** Opciones de `Intl.DateTimeFormat`. Default `{ dateStyle: "medium" }`. */
+  dateFormat?: Intl.DateTimeFormatOptions
+  /** Opciones de `Intl.NumberFormat`. Default `{ maximumFractionDigits: 2 }`. */
+  numberFormat?: Intl.NumberFormatOptions
 }) {
   const mode = React.useSyncExternalStore(
     subscribeMode,
@@ -86,7 +131,15 @@ export function EntityViewProvider({
     () => DEFAULT_MODE
   )
 
-  const value = React.useMemo(() => ({ mode, setMode: writeMode }), [mode])
+  const format = React.useMemo(
+    () => createEntityFormat(locale, dateFormat, numberFormat),
+    [locale, dateFormat, numberFormat]
+  )
+
+  const value = React.useMemo(
+    () => ({ mode, setMode: writeMode, format }),
+    [mode, format]
+  )
 
   return (
     <EntityViewContext.Provider value={value}>
@@ -105,10 +158,25 @@ export function useEntityViewMode() {
   return context
 }
 
+/** Formato del detalle (fechas y números) configurado en el provider. */
+export function useEntityFormat(): EntityFormat {
+  const context = React.useContext(EntityViewContext)
+  if (context) {
+    return context.format
+  }
+  fallbackFormat ??= createEntityFormat(undefined, undefined, undefined)
+  return fallbackFormat
+}
+
 /**
  * Wrapper of the view body: a form when the view submits something, otherwise a
  * plain container. A form without `onSubmit` would submit natively (reloading
  * the page) the moment a nested control fires Enter.
+ *
+ * `noValidate` desactiva la validación nativa del navegador: el contrato
+ * (`required`, `min`/`max`, …) se sigue exponiendo a lectores de pantalla, pero
+ * el paquete es el único que decide si un formulario puede enviarse (y así el
+ * mensaje de error sale siempre bajo el campo, no en un globo del navegador).
  */
 function ViewContainer({
   onSubmit,
@@ -123,7 +191,7 @@ function ViewContainer({
     return <div className={className}>{children}</div>
   }
   return (
-    <form onSubmit={onSubmit} className={className}>
+    <form onSubmit={onSubmit} className={className} noValidate>
       {children}
     </form>
   )
