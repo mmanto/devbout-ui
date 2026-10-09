@@ -17,15 +17,41 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Sin `registry-url` A PROPÓSITO. Con `registry-url`, setup-node escribe
+      # `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` en un .npmrc
+      # temporal (y exporta NPM_CONFIG_USERCONFIG): npm da la autenticación por
+      # resuelta, nunca hace el intercambio OIDC y publica con ese token — que
+      # es un placeholder — así que el PUT del paquete scopeado vuelve
+      # `E404 ... PUT https://registry.npmjs.org/@scope%2fpkg - Not found`.
+      # El registry por defecto de npm ya es registry.npmjs.org.
+      # Ver actions/setup-node#1551 y npm/documentation#1960.
+      #
+      # Node 24 trae npm 11.x: trusted publishing requiere npm >= 11.5.1 y
+      # Node >= 22.14.0. Sin caché a propósito (builds de release).
       - uses: actions/setup-node@v6
         with:
-          # Node 24 trae npm 11.x: trusted publishing requiere npm >= 11.5.1 y
-          # Node >= 22.14.0. Sin caché a propósito (builds de release).
           node-version: 24
-          registry-url: https://registry.npmjs.org
 
       - run: npm ci
       - run: npm run typecheck
+
+      # Deja en el log qué configuración de auth ve npm (sin valores).
+      - name: npm auth diagnostics
+        run: |
+          echo "NPM_CONFIG_USERCONFIG=${NPM_CONFIG_USERCONFIG:-<unset>}"
+          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "NODE_AUTH_TOKEN=<set, ${#NODE_AUTH_TOKEN} chars>"
+          else
+            echo "NODE_AUTH_TOKEN=<unset>"
+          fi
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:+<set>}"
+          echo "--- .npmrc ---"
+          if [ -f "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}" ]; then
+            sed -E 's/(_authToken=).*/\1<redacted>/' "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          else
+            echo "(sin .npmrc)"
+          fi
+          echo "registry: $(npm config get registry)"
 
       # Con cambios pendientes en .changeset/ abre/actualiza el PR de versiones;
       # al mergearlo publica en npm. La autenticación sale del id-token de

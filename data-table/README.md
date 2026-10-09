@@ -259,6 +259,15 @@ su idioma.
   set-2026 sólo permiten `npm stage publish` por defecto, y sin ese tilde el
   workflow queda en staging esperando aprobación manual con 2FA).
   El workflow corre en Node 24 porque trusted publishing exige npm ≥ 11.5.1.
+- **No le pongas `registry-url` a `actions/setup-node`** en ese workflow. Con
+  `registry-url`, la action escribe
+  `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` en un `.npmrc` temporal,
+  npm considera la autenticación resuelta, **no** hace el intercambio OIDC y el
+  publish falla con `E404 ... PUT https://registry.npmjs.org/@mmanto%2fdevbout-ui
+  - Not found`. El registry por defecto de npm ya es `registry.npmjs.org`, así
+  que la línea no aporta nada acá. Contexto:
+  [actions/setup-node#1551](https://github.com/actions/setup-node/issues/1551),
+  [npm/documentation#1960](https://github.com/npm/documentation/issues/1960).
 - Para iterar sin publicar: `npm pack` + `npm i ./mmanto-devbout-ui-x.y.z.tgz` en la app.
 
 ## Desarrollo
@@ -269,6 +278,7 @@ npm run typecheck
 npm run build        # tsup → dist/index.js + dist/index.cjs + dist/index.d.ts
 ```
 
-El playground visual es `base/` (Next 16 + Tailwind 4), que todavía tiene su copia local
-de estos componentes: migrarlo a consumir `@mmanto/devbout-ui` es el paso de dogfooding
-pendiente.
+El playground visual es `base/` (Next 16 + Tailwind 4) y **consume este paquete**:
+`base/node_modules/@mmanto/devbout-ui` es un symlink a `data-table/`, así que resuelve
+por `dist/`. Después de tocar `src/` hay que correr `npm run build` en la raíz antes de
+mirar la app.
