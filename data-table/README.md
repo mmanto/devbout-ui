@@ -259,6 +259,20 @@ su idioma.
   set-2026 sólo permiten `npm stage publish` por defecto, y sin ese tilde el
   workflow queda en staging esperando aprobación manual con 2FA).
   El workflow corre en Node 24 porque trusted publishing exige npm ≥ 11.5.1.
+  Lo más rápido es crearlo por CLI (npm ≥ 11.5), logueado como el dueño del
+  paquete:
+
+  ```bash
+  npm login
+  npm trust github @mmanto/devbout-ui \
+    --file release.yml \
+    --repo mmanto/devbout-ui \
+    --allow-publish
+  ```
+
+  `--allow-publish` es la clave: sin ese flag la relación sólo habilita
+  `npm stage publish` y `npm publish` falla igual. Verificá con
+  `npm trust list @mmanto/devbout-ui`.
 - **No le pongas `registry-url` a `actions/setup-node`** en ese workflow. Con
   `registry-url`, la action escribe
   `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` en un `.npmrc` temporal,

@@ -35,50 +35,36 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
 
-      # Deja en el log qué configuración de auth ve npm (sin valores).
-      - name: npm auth diagnostics
-        run: |
-          set +e
-          echo "NPM_CONFIG_USERCONFIG=${NPM_CONFIG_USERCONFIG:-<unset>}"
-          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "NODE_AUTH_TOKEN=<set, ${#NODE_AUTH_TOKEN} chars>"
-          else
-            echo "NODE_AUTH_TOKEN=<unset>"
-          fi
-          echo "--- .npmrc ---"
-          if [ -f "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}" ]; then
-            sed -E 's/(_authToken=).*/\1<redacted>/' "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
-          else
-            echo "(sin .npmrc)"
-          fi
-          echo "registry: $(npm config get registry)"
-
-      # Diagnóstico del trusted publishing: hace el intercambio OIDC a mano y
-      # muestra qué responde el registry (si no hay trusted publisher, o si no
-      # permite `npm publish`, acá se ve).
-      - name: OIDC exchange diagnostics
+      # Preflight de trusted publishing. Cuando el paquete no tiene un trusted
+      # publisher que matchee este repo/workflow (o no permite `npm publish`),
+      # el intercambio OIDC vuelve 404 y `npm publish` falla con un
+      # `ENEEDAUTH` engañoso: acá se ve la causa real.
+      # No bloquea el job (el PR de versiones no necesita publicar).
+      - name: trusted publishing preflight
         run: |
           set +e
           uri="${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
           tok="${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
           if [ -z "$uri" ] || [ -z "$tok" ]; then
-            echo "OIDC no disponible en el runner (${uri:-sin url})"; exit 0
+            echo "OIDC no disponible en el runner"
+            exit 0
           fi
           idt_json=$(curl -sS -H "Authorization: bearer $tok" "${uri}&audience=npm:registry.npmjs.org")
           idt=$(printf '%s' "$idt_json" | sed -n 's/.*"value":"\([^"]*\)".*/\1/p')
           if [ -z "$idt" ]; then
-            echo "no se pudo obtener el id_token: $(printf '%s' "$idt_json" | head -c 300)"
+            echo "no se pudo obtener el id_token: $(printf '%s' "$idt_json" | head -c 200)"
             exit 0
           fi
-          echo "id_token OK (${#idt} chars)"
           code=$(curl -sS -o /tmp/exchange.json -w '%{http_code}' -X POST \
             "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/@mmanto%2fdevbout-ui" \
             -H "Authorization: Bearer $idt")
-          echo "exchange HTTP $code"
           if [ "$code" = "200" ]; then
-            echo "exchange OK (token recibido, no impreso)"
+            echo "trusted publishing OK (token recibido, no impreso)"
           else
-            echo "exchange FAILED:"; cat /tmp/exchange.json; echo
+            echo "trusted publishing NO configurado (exchange HTTP $code)."
+            echo "Configuralo con:"
+            echo "  npm login && npm trust github @mmanto/devbout-ui --file release.yml --repo mmanto/devbout-ui --allow-publish"
+            cat /tmp/exchange.json 2>/dev/null; echo
           fi
 
       # Con cambios pendientes en .changeset/ abre/actualiza el PR de versiones;
