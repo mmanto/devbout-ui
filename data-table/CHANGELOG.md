@@ -1,5 +1,20 @@
 # @mmanto/devbout-ui
 
+## 0.4.0
+
+### Minor Changes
+
+- e2bf0fa: `TableDTO.toolbarActions`: acciones propias en la fila del toolbar del `DataTable`, al lado
+  del buscador (detrás de la barra separadora). Sirve para un alta que no pasa por el
+  formulario de la entidad (p. ej. un `Dialog` de la app con controles que el schema no cubre).
+
+### Patch Changes
+
+- 736320a: `formatDate` del detalle de entidad acepta timestamps ISO (`2026-03-01T14:30:00Z`,
+  `+00:00`) además de fechas civiles (`2026-03-01`). Antes, un campo `date` con un
+  timestamp ISO se mostraba crudo. Las fechas civiles siguen formateándose sin
+  corrimiento por zona horaria; los timestamps se formatean en la zona del runtime.
+
 ## 0.3.0
 
 ### Minor Changes
