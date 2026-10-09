@@ -15,9 +15,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           # Node 24 trae npm 11.x: trusted publishing requiere npm >= 11.5.1 y
           # Node >= 22.14.0. Sin caché a propósito (builds de release).
