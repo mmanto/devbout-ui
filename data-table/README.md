@@ -289,8 +289,14 @@ su idioma.
 ```bash
 npm install          # raíz del repo (workspaces)
 npm run typecheck
+npm run lint         # ESLint del paquete (data-table/src)
+npm test             # Vitest + Testing Library sobre jsdom (sin navegador)
 npm run build        # tsup → dist/index.js + dist/index.cjs + dist/index.d.ts
 ```
+
+Los tests viven en `data-table/src/**/__tests__` y corren **desde la raíz** del
+workspace (donde están las devDependencies de testing). Importan `src`
+directamente, así que no necesitan `dist/` construido.
 
 El playground visual es `base/` (Next 16 + Tailwind 4) y **consume este paquete**:
 `base/node_modules/@mmanto/devbout-ui` es un symlink a `data-table/`, así que resuelve
