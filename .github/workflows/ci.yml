@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Red de seguridad del paquete publicado: tipos, lint, tests y build.
+  package:
+    name: package (typecheck · lint · test · build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Mismo Node que el entorno de desarrollo y el de release (npm 11.x).
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  # El playground consume el paquete por `link:../data-table`, así que typecheck
+  # y lint necesitan `dist/` construido antes (el dist está gitignored).
+  playground:
+    name: playground base/ (typecheck · lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - run: npm ci
+      - run: npm run build
+
+      # `base/` usa pnpm con su propio lockfile y no está en los workspaces npm.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - name: pnpm install (base)
+        working-directory: base
+        run: pnpm install --frozen-lockfile
+      - name: typecheck (base)
+        working-directory: base
+        run: pnpm run typecheck
+      - name: eslint (base)
+        working-directory: base
+        run: pnpm run lint

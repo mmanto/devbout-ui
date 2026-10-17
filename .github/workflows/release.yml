@@ -12,7 +12,38 @@ permissions:
   id-token: write # OIDC: trusted publishing (sin NPM_TOKEN)
 
 jobs:
+  # El playground `base/` también es parte del repo: si su typecheck o su lint
+  # se rompen, no se publica el paquete.
+  playground:
+    name: playground base/ (typecheck · lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      # `base/` resuelve `@mmanto/devbout-ui` por symlink a `data-table/`, y el
+      # `dist/` está gitignored: hay que construirlo antes del typecheck.
+      - run: npm ci
+      - run: npm run build
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - name: pnpm install (base)
+        working-directory: base
+        run: pnpm install --frozen-lockfile
+      - name: typecheck (base)
+        working-directory: base
+        run: pnpm run typecheck
+      - name: eslint (base)
+        working-directory: base
+        run: pnpm run lint
+
   release:
+    needs: playground
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -33,7 +64,13 @@ jobs:
           node-version: 24
 
       - run: npm ci
+
+      # Gate de calidad antes de cualquier publicación: cualquier falla acá
+      # frena el release (los changesets no se consumen).
       - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
 
       # Preflight de trusted publishing. Cuando el paquete no tiene un trusted
       # publisher que matchee este repo/workflow (o no permite `npm publish`),
