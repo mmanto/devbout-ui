@@ -1,5 +1,30 @@
 # @mmanto/devbout-ui
 
+## 0.4.0
+
+### Minor Changes
+
+- e2bf0fa: `TableDTO.toolbarActions`: acciones propias en la fila del toolbar del `DataTable`, al lado
+  del buscador (detrás de la barra separadora). Sirve para un alta que no pasa por el
+  formulario de la entidad (p. ej. un `Dialog` de la app con controles que el schema no cubre).
+- 61abebf: La superficie por defecto de alta, edición y detalle pasa de `drawer` a `page`
+  (pantalla completa). Aplica cuando no hay preferencia guardada en
+  `EntityViewProvider` (`localStorage: entity-view-mode`) ni un `view` explícito en
+  la tabla o en la acción; esas dos siguen teniendo prioridad. Para conservar el
+  drawer por defecto, fijá `TableDTO.view` o `create`/`edit`/`detail.view` en
+  `"drawer"`. Los navegadores que ya tengan una preferencia guardada no cambian.
+
+### Patch Changes
+
+- 736320a: `formatDate` del detalle de entidad acepta timestamps ISO (`2026-03-01T14:30:00Z`,
+  `+00:00`) además de fechas civiles (`2026-03-01`). Antes, un campo `date` con un
+  timestamp ISO se mostraba crudo. Las fechas civiles siguen formateándose sin
+  corrimiento por zona horaria; los timestamps se formatean en la zona del runtime.
+- d5ec23f: `useIsMobile` ahora lee la media query con `useSyncExternalStore` en lugar de
+  hacer `setState` dentro de un `useEffect`. Mismo comportamiento (incluye
+  `false` en el servidor y el valor real al hidratar), sin renders en cascada: era
+  el patrón que marcaba el lint de React Hooks (`react-hooks/set-state-in-effect`).
+
 ## 0.3.0
 
 ### Minor Changes
