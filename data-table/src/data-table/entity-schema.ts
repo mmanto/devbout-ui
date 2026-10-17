@@ -200,7 +200,7 @@ export function validateField(
     } catch {
       // Un patrón inválido es un error de programación, no del usuario: se
       // ignora la regla en vez de bloquear el formulario para siempre.
-      expression = null
+      // `expression` queda en `null` (su valor inicial), por eso no se reasigna.
     }
     if (expression && !expression.test(v)) {
       return rules.patternMessage ?? messages?.pattern ?? DEFAULT_MESSAGES.pattern
