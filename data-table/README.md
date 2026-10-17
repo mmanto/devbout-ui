@@ -198,11 +198,13 @@ const dto = defineTableDTO<Client>({
 ```
 
 `create`, `edit` y `detail` salen del **mismo schema**: `EntityViewProvider` decide
-la superficie (preferencia global) y cada modo puede forzarla con `view` (`modal`,
-`drawer` o `page`), con `TableDTO.view` como default de la tabla. En `page` la vista
-ocupa el área en lugar de la grilla. El botón de alta, las acciones de fila y el
-cuerpo del detalle se derivan solos; un detalle con forma propia se declara con
-`detail.surface` (escape hatch), y `detail.sections` reparte los campos en bloques.
+la superficie (preferencia global, persistida en `localStorage`) y cada modo puede
+forzarla con `view` (`modal`, `drawer` o `page`), con `TableDTO.view` como default de
+la tabla. Sin preferencia guardada ni `view`, la superficie es **`page`** (pantalla
+completa): en `page` la vista ocupa el área en lugar de la grilla. El botón de alta,
+las acciones de fila y el cuerpo del detalle se derivan solos; un detalle con forma
+propia se declara con `detail.surface` (escape hatch), y `detail.sections` reparte
+los campos en bloques.
 
 El alta/edición acepta dos caminos: `build` (arma la fila en memoria; la tabla la
 inserta/actualiza con `ctx`) para tablas locales, u `onSubmit` (async) para tablas

@@ -27,7 +27,11 @@ import {
 export type EntityViewMode = "modal" | "drawer" | "page"
 
 const STORAGE_KEY = "entity-view-mode"
-const DEFAULT_MODE: EntityViewMode = "drawer"
+/**
+ * Superficie cuando ni el consumidor ni la preferencia guardada eligieron una:
+ * `page` (pantalla completa) es el default del ecosistema DevBout.
+ */
+const DEFAULT_MODE: EntityViewMode = "page"
 
 // Preference is an external store (localStorage) so it survives reloads and
 // stays in sync across tabs. Kept in memory too, for environments where
@@ -246,7 +250,8 @@ interface EntityViewProps {
 /**
  * Renders the create / edit / detail surface of an entity as a centered modal,
  * a side drawer, or a full screen, following the global
- * {@link useEntityViewMode} preference configured in Settings › General.
+ * {@link useEntityViewMode} preference configured in Settings › General
+ * (default `page` when there is no stored preference).
  */
 export function EntityView({
   open,
