@@ -212,6 +212,19 @@ contra la API. Con `onSubmit` el form no toca las filas: espera la promesa, mues
 el error si falla y cierra si sale bien — el dueño refresca (o setea la lista con
 `onDataChange`).
 
+El **toolbar lo renderiza el `DataTable`**: buscador, botón de alta, acciones
+masivas, selector de filas por página y visibilidad de columnas. La app solo aporta
+el DTO (`search`, `entity.create`, `bulkActions`, `pageSizeOptions`,
+`columnLabels`), así que todas las grillas heredan la misma estructura. El
+selector de filas por página y el menú de columnas forman un grupo alineado a la
+derecha (`ml-auto` en el grupo, no en el trigger); el botón de alta usa
+`default` (primario) cuando no se fija `create.variant`. Si el alta
+no puede salir del schema (por ejemplo, un formulario con un `Dialog` propio),
+`dto.toolbarActions` es el único slot para esa acción: se pinta dentro del mismo
+toolbar, detrás de la barra separadora y con el mismo layout. `toolbarActions`
+existe desde `^0.4.0`; la agrupación a la derecha y el default primario del alta
+requieren la próxima release (`^0.5.0`).
+
 La validación vive en el paquete (sin dependencias): `required`, `minLength`,
 `maxLength`, `pattern`, `min` y `max` salen de las `rules` del campo, y
 `entity.validate(values)` agrega reglas propias. El error se muestra bajo el campo

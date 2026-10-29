@@ -6,7 +6,8 @@ import { describe, expect, it } from "vitest"
 import { EntityViewProvider } from "../../entity-view"
 import type { DataTableFeatures } from "../features"
 import { DataTable } from "../data-table"
-import { defineTableDTO, type TableDTO } from "../types"
+import { defineEntitySchema } from "../entity-schema"
+import { defineEntity, defineTableDTO, type TableDTO } from "../types"
 
 type Row = { id: string; name: string; status: string }
 
@@ -92,5 +93,75 @@ describe("DataTable", () => {
     expect(screen.getByText("Proyecto 12")).toBeInTheDocument()
     expect(screen.queryByText("Proyecto 01")).not.toBeInTheDocument()
     expect(screen.getAllByRole("row")).toHaveLength(3) // header + 2 filas
+  })
+
+  it("renderiza el toolbar completo (búsqueda, alta, masivas, página y columnas)", async () => {
+    const user = userEvent.setup()
+    const entity = defineEntity<Row>({
+      schema: defineEntitySchema({
+        fields: [{ kind: "text", name: "name", label: "Nombre" }],
+        labels: { createLabel: "Nuevo" },
+      }),
+      build: (values) => ({ id: "nuevo", name: values.name, status: "activo" }),
+      create: {},
+    })
+
+    render(
+      <EntityViewProvider>
+        <DataTable
+          dto={defineTableDTO<Row>({
+            columns,
+            entity,
+            search: { columnId: "name", placeholder: "Buscar…" },
+            bulkActions: [{ id: "del", label: "Eliminar", run: () => {} }],
+            bulkMenuLabel: "Acciones masivas",
+            columnLabels: { name: "Nombre", status: "Estado" },
+            labels: {
+              columns: "Columnas",
+              rowsPerPage: "Filas por página",
+              selectAll: "Seleccionar todo",
+              selectRow: "Seleccionar fila",
+            },
+          })}
+          data={rows}
+        />
+      </EntityViewProvider>
+    )
+
+    expect(screen.getByPlaceholderText("Buscar…")).toBeInTheDocument()
+    const createButton = screen.getByRole("button", { name: /Nuevo/ })
+    expect(createButton.className).toContain("bg-primary")
+    const pageSize = screen.getByLabelText("Filas por página")
+    expect(pageSize.closest(".ml-auto")).not.toBeNull()
+    expect(screen.getByRole("button", { name: /Columnas/ })).toBeInTheDocument()
+
+    // La acción masiva aparece en el toolbar al seleccionar más de una fila.
+    const rowChecks = screen.getAllByRole("checkbox", {
+      name: "Seleccionar fila",
+    })
+    await user.click(rowChecks[0])
+    await user.click(rowChecks[1])
+    expect(
+      screen.getByRole("button", { name: /Acciones masivas/ })
+    ).toBeInTheDocument()
+  })
+
+  it("pinta `toolbarActions` dentro del toolbar, junto a la búsqueda", () => {
+    render(
+      <EntityViewProvider>
+        <DataTable
+          dto={defineTableDTO<Row>({
+            columns,
+            search: { columnId: "name", placeholder: "Buscar…" },
+            toolbarActions: <button type="button">Nuevo usuario</button>,
+          })}
+          data={rows}
+        />
+      </EntityViewProvider>
+    )
+
+    expect(
+      screen.getByRole("button", { name: "Nuevo usuario" })
+    ).toBeInTheDocument()
   })
 })

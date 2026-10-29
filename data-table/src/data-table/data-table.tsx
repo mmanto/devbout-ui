@@ -397,7 +397,7 @@ export function DataTable<TData extends RowData>({
         ) : null}
         {createConfig ? (
           <Button
-            variant={createConfig.variant ?? "outline"}
+            variant={createConfig.variant ?? "default"}
             onClick={() => setPanel({ kind: "create" })}
           >
             <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
@@ -450,55 +450,58 @@ export function DataTable<TData extends RowData>({
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
-        {/* El selector se explica solo; la etiqueta queda solo para lectores
-            de pantalla. */}
-        <label htmlFor="table-page-size" className="sr-only">
-          {labels?.rowsPerPage ?? "Rows per page"}
-        </label>
-        <Select
-          id="table-page-size"
-          value={table.state.pagination.pageSize}
-          onValueChange={(value) => {
-            if (value != null) table.setPageSize(value)
-          }}
-        >
-          <SelectTrigger className="ml-auto w-[70px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(dto.pageSizeOptions ?? [10, 20, 30, 40, 50]).map((pageSize) => (
-              <SelectItem key={pageSize} value={pageSize}>
-                {pageSize}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" />}>
-            {labels?.columns ?? "Columns"}
-            <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuGroup>
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {dto.columnLabels?.[column.id] ?? column.id}
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Filas por página + visibilidad de columnas: grupo alineado a la
+            derecha. El `ml-auto` va en el grupo (no en el trigger del Select)
+            para que siga funcionando aunque la primitiva envuelva el trigger. */}
+        <div className="ml-auto flex items-center gap-2">
+          <label htmlFor="table-page-size" className="sr-only">
+            {labels?.rowsPerPage ?? "Rows per page"}
+          </label>
+          <Select
+            id="table-page-size"
+            value={table.state.pagination.pageSize}
+            onValueChange={(value) => {
+              if (value != null) table.setPageSize(value)
+            }}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(dto.pageSizeOptions ?? [10, 20, 30, 40, 50]).map((pageSize) => (
+                <SelectItem key={pageSize} value={pageSize}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline" />}>
+              {labels?.columns ?? "Columns"}
+              <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuGroup>
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {dto.columnLabels?.[column.id] ?? column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-md border">
         <Table>

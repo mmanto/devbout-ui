@@ -1,5 +1,16 @@
 # @mmanto/devbout-ui
 
+## 0.5.0
+
+### Minor Changes
+
+- Toolbar del `DataTable`: el selector de filas por página y el menú de columnas
+  quedan agrupados y alineados a la derecha (`ml-auto` en el grupo, no en el
+  `SelectTrigger`, así no depende de cómo la primitiva envuelva el trigger). El
+  botón de alta usa la variante `default` (primaria) cuando la entidad no define
+  `create.variant`; antes caía a `outline`. Las apps que quieran el alta outline
+  pueden seguir fijando `create: { variant: "outline" }`.
+
 ## 0.4.0
 
 ### Minor Changes
