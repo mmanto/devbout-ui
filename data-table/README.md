@@ -1,8 +1,9 @@
 # @mmanto/devbout-ui
 
-Primitivas de UI estilo **base-mira** (shadcn sobre [Base UI](https://base-ui.com)) y un
-**data-table declarativo**: tabla con orden/filtros/visibilidad de columnas, selección
-múltiple, acciones por fila, y alta/edición/detalle resueltos por un DTO.
+Primitivas de UI estilo **base-mira** (shadcn sobre [Base UI](https://base-ui.com)), un
+**app shell** (sidebar + header + contenedor) y un **data-table declarativo**: tabla con
+orden/filtros/visibilidad de columnas, selección múltiple, acciones por fila, y
+alta/edición/detalle resueltos por un DTO.
 
 Extraído de `devbout-ui/base` (el playground Next vive en la raíz de este repo) para
 poder reusarlo desde varias apps manteniendo versiones.
@@ -246,6 +247,81 @@ componentes `EntityForm`, `EntityFormFooter`, `CreateEntity`, `EditEntity`,
 `DetailEntity`, `useEntityForm`, `useEntityFormat`) está exportada y tipada;
 `TableLabels` y `EntityLabels` concentran los textos para que la app los traduzca a
 su idioma.
+
+## App shell
+
+El paquete incluye el shell de la aplicación (sidebar + header + contenedor),
+agnóstico de router y declarativo como el `DataTable`. Replica la estructura de
+`gestion.ar/frontend/src/templates/default`: sidebar colapsable a iconos con marca,
+navegación con submenús y menú de usuario; `SidebarInset` con header (trigger,
+separador y breadcrumb) y contenedor de contenido.
+
+```tsx
+import {
+  AppShell,
+  readSidebarOpen,
+  type NavItem,
+  type ShellUser,
+} from "@mmanto/devbout-ui"
+
+const nav: NavItem[] = [
+  { title: "Proyectos", href: "/projects", icon: <FolderIcon /> },
+  {
+    title: "Ajustes",
+    href: "/settings",
+    children: [
+      { title: "General", href: "/settings/general" },
+      { title: "Equipo", href: "/settings/team" },
+    ],
+  },
+]
+
+const user: ShellUser = {
+  name: "Ana Pérez",
+  description: "ana@example.com",
+  settingsHref: "/settings/general",
+  onLogout: () => signOut(),
+}
+
+<AppShell
+  nav={nav}
+  user={user}
+  brand={{ title: "Intellify", href: "/projects" }}
+  pathname={pathname}
+  renderLink={(href) => <Link to={href} />}
+  defaultOpen={readSidebarOpen()}
+>
+  {children}
+</AppShell>
+```
+
+- **Router:** el paquete no importa ningún router. `pathname` marca el ítem activo
+  (`match: "prefix"` por defecto; `"exact"` para rutas puntuales) y deriva el
+  breadcrumb; `renderLink` provee el `<Link>` de la app (default `<a href>`).
+- **Next (App Router):** `AppShell` va en un wrapper `"use client"` que lea
+  `usePathname()` y pase `next/link`; ver `base/components/app-shell-frame.tsx` del
+  repo. `readSidebarOpen()` es SSR-safe: devuelve el fallback fuera del navegador.
+- **Header propio:** `header={false}` cuando la página ya pinta su header (como en
+  el playground `base/`); `crumbs` fija migajas explícitas para rutas con detalle.
+  `headerActions` agrega acciones a la derecha del header (notificaciones, tema).
+- **Contenedor propio:** `contentContainer={false}` cuando la app maneja el padding
+  por página; si no, los children van en `flex flex-1 flex-col gap-4 p-4 pt-0`
+  (`contentClassName` lo ajusta).
+- **Escape hatches:** `sidebarHeader`/`sidebarFooter` reemplazan marca y usuario
+  (p. ej. un selector de organización); `AppSidebar`, `AppNav`, `AppUserMenu` y
+  `AppHeader` se exportan por separado para armar un layout propio.
+- **Menú de usuario:** por defecto Ajustes (`settingsHref`) y Cerrar sesión
+  (`onLogout`); `user.actions` reemplaza el menú completo (`href` usa `renderLink`,
+  `onSelect` para handlers, `destructive` y `separatorBefore`).
+- **Textos:** `labels.settings`, `labels.logout` y `labels.home` caen a inglés;
+  pasalos traducidos desde la app.
+- **Persistencia:** `SidebarProvider` guarda el estado en la cookie `sidebar_state`
+  (7 días) y atajo ⌘/Ctrl+B; `readSidebarOpen()` la lee para el estado inicial.
+
+Tipos: `NavItem`, `NavSubItem`, `NavMatch`, `ShellBrand`, `ShellUser`,
+`ShellUserAction`, `ShellLabels`, `ShellCrumb`, `ShellLinkRender` y los props de
+cada componente (`AppShellProps`, `AppSidebarProps`, `AppHeaderProps`,
+`AppNavProps`, `AppUserMenuProps`).
 
 ## Versionado
 

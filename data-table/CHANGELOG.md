@@ -1,5 +1,29 @@
 # @mmanto/devbout-ui
 
+## 0.6.0
+
+### Minor Changes
+
+- **App shell**: `AppShell` compone `SidebarProvider` + sidebar colapsable +
+  `SidebarInset` con header (trigger, separador y breadcrumb) y contenedor de
+  contenido, con el mismo contrato declarativo que el `DataTable`:
+
+  - `nav: NavItem[]` (ítems, iconos, submenús colapsables, activo por `pathname`,
+    `match: "prefix" | "exact"`), `user: ShellUser` y `brand: ShellBrand` como datos.
+  - Agnóstico de router: `pathname` + `renderLink` inyectados (Next `usePathname` +
+    `next/link`, React Router `useLocation` + `Link to`). Sin `renderLink` cae a
+    `<a href>`.
+  - Piezas exportadas para layouts propios: `AppSidebar`, `AppNav`, `AppUserMenu`,
+    `AppHeader`, más `matchNavHref` y `readSidebarOpen` (estado inicial desde la
+    cookie `sidebar_state`, SSR-safe).
+  - Escape hatches: `header={false}`, `crumbs`, `headerActions`,
+    `contentContainer={false}`, `sidebarHeader` / `sidebarFooter`.
+  - Textos de usuario en `labels` (`settings`, `logout`, `home`); el menú por
+    defecto sale de `settingsHref` y `onLogout`, y `user.actions` lo reemplaza.
+
+  El playground `base/` pasa a consumir `AppShell` (se eliminan `app-sidebar.tsx`,
+  `nav-main.tsx` y `nav-user.tsx` duplicados).
+
 ## 0.5.0
 
 ### Minor Changes

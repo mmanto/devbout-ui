@@ -1,5 +1,5 @@
 /**
- * @mmanto/devbout-ui — primitivas base-mira + data-table declarativo.
+ * @mmanto/devbout-ui — primitivas base-mira, app shell y data-table declarativo.
  *
  * Punto de entrada único. Todo el paquete es cliente (`"use client"` va en el
  * bundle): son componentes de UI con estado, pensados para React 19.
@@ -59,6 +59,29 @@ export {
   useEntityViewMode,
 } from "./entity-view"
 export type { EntityFormat, EntityViewMode } from "./entity-view"
+
+// ── app shell (sidebar + header + contenedor) ─────────────────────────────────
+export { AppShell, readSidebarOpen } from "./shell/app-shell"
+export type { AppShellProps } from "./shell/app-shell"
+export { AppSidebar } from "./shell/sidebar"
+export type { AppSidebarProps } from "./shell/sidebar"
+export { AppHeader } from "./shell/header"
+export type { AppHeaderProps } from "./shell/header"
+export { AppNav, matchNavHref } from "./shell/nav"
+export type { AppNavProps } from "./shell/nav"
+export { AppUserMenu } from "./shell/user-menu"
+export type { AppUserMenuProps } from "./shell/user-menu"
+export type {
+  NavItem,
+  NavMatch,
+  NavSubItem,
+  ShellBrand,
+  ShellCrumb,
+  ShellLabels,
+  ShellLinkRender,
+  ShellUser,
+  ShellUserAction,
+} from "./shell/types"
 
 // ── primitivas base-mira ──────────────────────────────────────────────────────
 export {

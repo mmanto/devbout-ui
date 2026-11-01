@@ -1,9 +1,8 @@
 import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppShellFrame } from "@/components/app-shell-frame"
 import { EntityViewProvider } from "@mmanto/devbout-ui"
-import { SidebarInset, SidebarProvider } from "@mmanto/devbout-ui"
 import { ThemePresetProvider } from "@/components/theme-preset-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { THEME_PRESET_BOOTSTRAP_SCRIPT } from "@/lib/theme-presets/script"
@@ -42,10 +41,7 @@ export default function RootLayout({
               locale="es-AR"
               dateFormat={{ day: "2-digit", month: "2-digit", year: "numeric" }}
             >
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>{children}</SidebarInset>
-              </SidebarProvider>
+              <AppShellFrame>{children}</AppShellFrame>
             </EntityViewProvider>
           </ThemePresetProvider>
         </ThemeProvider>

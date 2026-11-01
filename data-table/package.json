@@ -1,7 +1,7 @@
 {
   "name": "@mmanto/devbout-ui",
-  "version": "0.5.0",
-  "description": "Primitivas base-mira (shadcn) y data-table declarativo: tabla, filtros, selección, acciones por fila, alta/edición/detalle por DTO.",
+  "version": "0.6.0",
+  "description": "Primitivas base-mira (shadcn), app shell reutilizable y data-table declarativo: tabla, filtros, selección, acciones por fila, alta/edición/detalle por DTO.",
   "license": "Apache-2.0",
   "type": "module",
   "files": [
@@ -34,6 +34,7 @@
     "tailwind",
     "shadcn",
     "data-table",
+    "app-shell",
     "base-ui"
   ],
   "scripts": {
