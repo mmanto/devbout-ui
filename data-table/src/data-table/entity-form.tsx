@@ -25,41 +25,7 @@ import {
 } from "./entity-schema"
 
 import type { EntityDTO } from "./types"
-
-/**
- * Rejilla canónica de formularios (docs/design/DESIGN.md §9.1): una sola
- * rejilla de 1/2/3 columnas según el ancho del contenedor. Los campos
- * multilínea ocupan 2 columnas y pasan a 3 si quedan solos en su fila.
- */
-const GRID_CLASSES = "grid gap-4 @md:grid-cols-2 @2xl:grid-cols-3"
-const SPAN_WIDE = "@md:col-span-2 @2xl:col-span-2"
-const SPAN_WIDE_FULL = "@md:col-span-2 @2xl:col-span-3"
-
-/**
- * Reparte los campos en la rejilla de 3 columnas y devuelve la clase de ancho
- * de cada uno, en orden. Un multilínea arranca fila nueva si sólo queda una
- * columna y, si no hay un campo de una columna después, ocupa las tres.
- */
-function fieldSpans(fields: readonly FieldDTO[]): string[] {
-  const wide = fields.map((field) => field.kind === "textarea")
-  const spans: string[] = []
-  let column = 0
-
-  for (let index = 0; index < wide.length; index += 1) {
-    if (!wide[index]) {
-      spans.push("")
-      column = (column + 1) % 3
-      continue
-    }
-
-    if (column === 2) column = 0
-    const full = column === 0 && wide[index + 1] !== false
-    spans.push(full ? SPAN_WIDE_FULL : SPAN_WIDE)
-    column = (column + (full ? 3 : 2)) % 3
-  }
-
-  return spans
-}
+import { ENTITY_GRID_CLASSES, fieldSpans } from "./entity-grid"
 
 /**
  * Cuerpo de un formulario de entidad: los campos de alta/edición del schema en
@@ -79,7 +45,7 @@ export function EntityForm({
 }) {
   // Los campos `formHidden` (derivados o de sólo-detalle) no se editan.
   const fields = schema.fields.filter((field) => !field.formHidden)
-  const spans = fieldSpans(fields)
+  const spans = fieldSpans(fields.map((field) => field.kind === "textarea"))
 
   const items = fields.map((field, index) => {
     const value = values[field.name] ?? ""
@@ -141,7 +107,7 @@ export function EntityForm({
 
   return (
     <div className="@container flex flex-col gap-4">
-      <div className={GRID_CLASSES}>{items}</div>
+      <div className={ENTITY_GRID_CLASSES}>{items}</div>
       {invalid ? (
         <p role="alert" className="text-xs text-destructive">
           {schema.labels?.messages?.invalid ?? "Fix the highlighted fields"}

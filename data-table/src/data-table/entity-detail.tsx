@@ -17,6 +17,7 @@ import {
   type FieldDTO,
 } from "./entity-schema"
 
+import { ENTITY_GRID_CLASSES, fieldSpans } from "./entity-grid"
 import type { DetailSection, EntityDTO, TableActionContext } from "./types"
 
 /**
@@ -123,19 +124,18 @@ function FieldsSection({
         .map((name) => schema.fields.find((field) => field.name === name))
         .filter((field): field is FieldDTO => field !== undefined)
     : schema.fields.filter((field) => !field.view?.hidden)
+  // Multilínea o marcado a mano con `span: 2`: ocupan 2 columnas (3 si quedan
+  // solos en su fila), igual que en el formulario.
+  const spans = fieldSpans(
+    fields.map((field) => field.kind === "textarea" || field.view?.span === 2)
+  )
 
   return (
-    <section className="grid gap-2">
+    <section className="@container grid gap-2">
       {title ? <h3 className="text-sm font-medium">{title}</h3> : null}
-      <dl className="@container grid gap-4 @md:grid-cols-2">
-        {fields.map((field) => (
-          <div
-            key={field.name}
-            className={cn(
-              "grid gap-1",
-              field.view?.span === 2 && "@md:col-span-2"
-            )}
-          >
+      <dl className={ENTITY_GRID_CLASSES}>
+        {fields.map((field, index) => (
+          <div key={field.name} className={cn("grid gap-1", spans[index])}>
             <dt className="text-xs font-medium text-muted-foreground">
               {field.label}
             </dt>
