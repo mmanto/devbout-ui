@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { EntityViewProvider } from "../../entity-view"
 import { CreateEntity } from "../entity-form"
-import { defineEntitySchema } from "../entity-schema"
+import { defineEntitySchema, type EntitySchema } from "../entity-schema"
 import { defineEntity } from "../types"
 
 type Project = { id: string; name: string }
@@ -82,5 +82,70 @@ describe("EntityForm a través de CreateEntity", () => {
 
     expect(onSaved).toHaveBeenCalledTimes(1)
     expect(onSaved).toHaveBeenCalledWith({ id: "nuevo", name: "abc" })
+  })
+})
+
+type LayoutRow = { id: string }
+
+function renderLayout(schema: EntitySchema) {
+  const entity = defineEntity<LayoutRow>({
+    schema,
+    rowId: (row) => row.id,
+    build: () => ({ id: "nuevo" }),
+  })
+
+  render(
+    <EntityViewProvider>
+      <CreateEntity
+        entity={entity}
+        open
+        mode="page"
+        onOpenChange={() => {}}
+        onSaved={() => {}}
+      />
+    </EntityViewProvider>
+  )
+}
+
+const layoutLabels = {
+  createTitle: "Nuevo",
+  createSubmit: "Crear",
+  cancel: "Cancelar",
+}
+
+describe("rejilla canónica del formulario", () => {
+  it("un textarea ocupa 2 columnas para que el campo siguiente comparta la fila", () => {
+    renderLayout(
+      defineEntitySchema({
+        fields: [
+          { kind: "text", name: "nombre", label: "Nombre" },
+          { kind: "text", name: "codigo", label: "Código" },
+          { kind: "textarea", name: "descripcion", label: "Descripción" },
+          { kind: "text", name: "notas", label: "Notas" },
+        ],
+        labels: layoutLabels,
+      })
+    )
+
+    expect(screen.getByLabelText("Descripción").closest("div")).toHaveClass(
+      "@2xl:col-span-2"
+    )
+  })
+
+  it("un textarea que queda solo en su fila ocupa las 3 columnas", () => {
+    renderLayout(
+      defineEntitySchema({
+        fields: [
+          { kind: "text", name: "nombre", label: "Nombre" },
+          { kind: "text", name: "codigo", label: "Código" },
+          { kind: "textarea", name: "descripcion", label: "Descripción" },
+        ],
+        labels: layoutLabels,
+      })
+    )
+
+    expect(screen.getByLabelText("Descripción").closest("div")).toHaveClass(
+      "@2xl:col-span-3"
+    )
   })
 })

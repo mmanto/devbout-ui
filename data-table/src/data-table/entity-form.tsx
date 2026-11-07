@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { cn } from "../lib/utils"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import {
@@ -25,57 +26,45 @@ import {
 
 import type { EntityDTO } from "./types"
 
-/** Campos de texto libre: necesitan media fila, no un tercio. */
-const TEXT_FIELD_KINDS: readonly FieldDTO["kind"][] = [
-  "text",
-  "textarea",
-  "tags",
-]
+/**
+ * Rejilla canónica de formularios (docs/design/DESIGN.md §9.1): una sola
+ * rejilla de 1/2/3 columnas según el ancho del contenedor. Los campos
+ * multilínea ocupan 2 columnas y pasan a 3 si quedan solos en su fila.
+ */
+const GRID_CLASSES = "grid gap-4 @md:grid-cols-2 @2xl:grid-cols-3"
+const SPAN_WIDE = "@md:col-span-2 @2xl:col-span-2"
+const SPAN_WIDE_FULL = "@md:col-span-2 @2xl:col-span-3"
 
 /**
- * Clases de cada fila. Las filas se apilan cuando el contenedor es angosto (el
- * drawer), y se reparten en columnas cuando hay ancho (pantalla propia, modal).
+ * Reparte los campos en la rejilla de 3 columnas y devuelve la clase de ancho
+ * de cada uno, en orden. Un multilínea arranca fila nueva si sólo queda una
+ * columna y, si no hay un campo de una columna después, ocupa las tres.
  */
-const ROW_CLASSES: Record<number, string> = {
-  1: "grid gap-4",
-  2: "grid gap-4 @md:grid-cols-2",
-  3: "grid gap-4 @md:grid-cols-2 @2xl:grid-cols-3",
-}
+function fieldSpans(fields: readonly FieldDTO[]): string[] {
+  const wide = fields.map((field) => field.kind === "textarea")
+  const spans: string[] = []
+  let column = 0
 
-/**
- * Cuántos campos lleva cada fila: dos cuando la fila incluye un campo de texto
- * libre, tres cuando no. Se recorre en orden, así el reparto depende del orden
- * de `fields`.
- */
-function rowSizes(fields: readonly FieldDTO[]): number[] {
-  const sizes: number[] = []
-  let size = 0
-  let hasTextField = false
-
-  for (const field of fields) {
-    const isTextField = TEXT_FIELD_KINDS.includes(field.kind)
-
-    if (size === 3 || (size === 2 && (hasTextField || isTextField))) {
-      sizes.push(size)
-      size = 0
-      hasTextField = false
+  for (let index = 0; index < wide.length; index += 1) {
+    if (!wide[index]) {
+      spans.push("")
+      column = (column + 1) % 3
+      continue
     }
 
-    size += 1
-    hasTextField ||= isTextField
+    if (column === 2) column = 0
+    const full = column === 0 && wide[index + 1] !== false
+    spans.push(full ? SPAN_WIDE_FULL : SPAN_WIDE)
+    column = (column + (full ? 3 : 2)) % 3
   }
 
-  if (size > 0) {
-    sizes.push(size)
-  }
-
-  return sizes
+  return spans
 }
 
 /**
- * Cuerpo de un formulario de entidad: los campos de alta/edición del schema,
- * repartidos en filas de dos o tres según {@link rowSizes}, con el mensaje de
- * error debajo de cada campo inválido.
+ * Cuerpo de un formulario de entidad: los campos de alta/edición del schema en
+ * la rejilla canónica de 1/2/3 columnas (ver {@link fieldSpans}), con el
+ * mensaje de error debajo de cada campo inválido.
  */
 export function EntityForm({
   schema,
@@ -90,13 +79,14 @@ export function EntityForm({
 }) {
   // Los campos `formHidden` (derivados o de sólo-detalle) no se editan.
   const fields = schema.fields.filter((field) => !field.formHidden)
+  const spans = fieldSpans(fields)
 
   const items = fields.map((field, index) => {
     const value = values[field.name] ?? ""
     const message = errors?.[field.name]
 
     return (
-      <div key={field.name} className="grid gap-2">
+      <div key={field.name} className={cn("grid gap-2", spans[index])}>
         <label htmlFor={field.name} className="text-xs font-medium">
           {field.label}
         </label>
@@ -147,22 +137,11 @@ export function EntityForm({
     )
   })
 
-  const rows: React.ReactNode[][] = []
-  let offset = 0
-  for (const size of rowSizes(fields)) {
-    rows.push(items.slice(offset, offset + size))
-    offset += size
-  }
-
   const invalid = errors ? Object.keys(errors).length > 0 : false
 
   return (
     <div className="@container flex flex-col gap-4">
-      {rows.map((row, index) => (
-        <div key={index} className={ROW_CLASSES[row.length]}>
-          {row}
-        </div>
-      ))}
+      <div className={GRID_CLASSES}>{items}</div>
       {invalid ? (
         <p role="alert" className="text-xs text-destructive">
           {schema.labels?.messages?.invalid ?? "Fix the highlighted fields"}
